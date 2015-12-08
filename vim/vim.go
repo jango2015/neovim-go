@@ -6,9 +6,7 @@
 package vim
 
 import (
-	"fmt"
 	"io"
-	"reflect"
 	"sync"
 
 	"github.com/garyburd/nvimgo/msgpack"
@@ -65,89 +63,6 @@ func (v *Vim) ChannelID() (int, error) {
 	}
 	v.channelID = info.ChannelID
 	return v.channelID, nil
-}
-
-const (
-	bufferExt  = 0
-	windowExt  = 1
-	tabpageExt = 2
-)
-
-func withExtensions() rpc.Option {
-	return rpc.WithExtensions(msgpack.ExtensionMap{
-		bufferExt:  func(p []byte) (interface{}, error) { return Buffer(p), nil },
-		windowExt:  func(p []byte) (interface{}, error) { return Window(p), nil },
-		tabpageExt: func(p []byte) (interface{}, error) { return Tabpage(p), nil },
-	})
-}
-
-type Buffer string
-
-func (x *Buffer) UnmarshalMsgPack(dec *msgpack.Decoder) error {
-	if dec.Type() != msgpack.Extension || dec.Extension() != bufferExt {
-		err := &msgpack.DecodeConvertError{
-			SrcType:  dec.Type(),
-			DestType: reflect.TypeOf(x),
-		}
-		dec.Skip()
-		return err
-	}
-	*x = Buffer(dec.BytesNoCopy())
-	return nil
-}
-
-func (x Buffer) MarshalMsgPack(enc *msgpack.Encoder) error {
-	return enc.PackExtension(bufferExt, []byte(x))
-}
-
-func (x Buffer) String() string {
-	return fmt.Sprintf("Buffer:%x", string(x))
-}
-
-type Window string
-
-func (x *Window) UnmarshalMsgPack(dec *msgpack.Decoder) error {
-	if dec.Type() != msgpack.Extension || dec.Extension() != windowExt {
-		err := &msgpack.DecodeConvertError{
-			SrcType:  dec.Type(),
-			DestType: reflect.TypeOf(x),
-		}
-		dec.Skip()
-		return err
-	}
-	*x = Window(dec.BytesNoCopy())
-	return nil
-}
-
-func (x Window) MarshalMsgPack(enc *msgpack.Encoder) error {
-	return enc.PackExtension(windowExt, []byte(x))
-}
-
-func (x Window) String() string {
-	return fmt.Sprintf("Window:%x", string(x))
-}
-
-type Tabpage string
-
-func (x *Tabpage) UnmarshalMsgPack(dec *msgpack.Decoder) error {
-	if dec.Type() != msgpack.Extension || dec.Extension() != tabpageExt {
-		err := &msgpack.DecodeConvertError{
-			SrcType:  dec.Type(),
-			DestType: reflect.TypeOf(x),
-		}
-		dec.Skip()
-		return err
-	}
-	*x = Tabpage(dec.BytesNoCopy())
-	return nil
-}
-
-func (x Tabpage) MarshalMsgPack(enc *msgpack.Encoder) error {
-	return enc.PackExtension(tabpageExt, []byte(x))
-}
-
-func (x Tabpage) String() string {
-	return fmt.Sprintf("Tabpage:%x", string(x))
 }
 
 type marshalAsString []byte

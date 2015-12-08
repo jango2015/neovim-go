@@ -77,15 +77,15 @@ func TestAPI(t *testing.T) {
 	if len(bufs) != 1 {
 		t.Errorf("expected one buf, found %d bufs", len(bufs))
 	}
-	if len(bufs[0]) == 0 {
-		t.Errorf("buf len == 0: %s", bufs[0])
+	if bufs[0] == 0 {
+		t.Errorf("bufs[0] == 0")
 	}
 	buf, err := v.CurrentBuffer()
 	if err != nil {
 		t.Fatal(err)
 	}
 	if buf != bufs[0] {
-		t.Fatal("buf %v != bufs[0] %v", buf, buf[0])
+		t.Fatal("buf %v != bufs[0] %v", buf, bufs[0])
 	}
 	err = v.SetCurrentBuffer(buf)
 	if err != nil {
@@ -101,15 +101,15 @@ func TestAPI(t *testing.T) {
 	if len(wins) != 1 {
 		t.Errorf("expected one win, found %d wins", len(wins))
 	}
-	if len(wins[0]) == 0 {
-		t.Errorf("win len == 0: %s", wins[0])
+	if wins[0] == 0 {
+		t.Errorf("wins[0] == 0")
 	}
 	win, err := v.CurrentWindow()
 	if err != nil {
 		t.Fatal(err)
 	}
 	if win != wins[0] {
-		t.Fatal("win %v != wins[0] %v", win, win[0])
+		t.Fatal("win %v != wins[0] %v", win, wins[0])
 	}
 	err = v.SetCurrentWindow(win)
 	if err != nil {
@@ -125,15 +125,15 @@ func TestAPI(t *testing.T) {
 	if len(pages) != 1 {
 		t.Errorf("expected one page, found %d pages", len(pages))
 	}
-	if len(pages[0]) == 0 {
-		t.Errorf("page len == 0: %s", pages[0])
+	if pages[0] == 0 {
+		t.Errorf("pages[0] == 0")
 	}
 	page, err := v.CurrentTabpage()
 	if err != nil {
 		t.Fatal(err)
 	}
 	if page != pages[0] {
-		t.Fatal("page %v != pages[0] %v", page, page[0])
+		t.Fatal("page %v != pages[0] %v", page, pages[0])
 	}
 	err = v.SetCurrentTabpage(page)
 	if err != nil {
