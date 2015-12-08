@@ -19,7 +19,7 @@ func RegisterPluginSetup(f func(v *Vim) error) {
 
 // PluginMain implements the main function for a Neovim remote plugin.
 func PluginMain() {
-	if fname := os.Getenv("NVIMGO_LOG_FILE"); fname != "" {
+	if fname := os.Getenv("NEOVIM_GO_LOG_FILE"); fname != "" {
 		f, err := os.OpenFile(fname, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 		if err != nil {
 			log.Fatal(err)

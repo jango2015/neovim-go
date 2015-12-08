@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/garyburd/nvimgo/vim"
-	"github.com/garyburd/nvimgo/vim/vimtest"
+	"github.com/garyburd/neovim-go/vim"
+	"github.com/garyburd/neovim-go/vim/vimtest"
 )
 
 func helloHandler(v *vim.Vim, s string) (string, error) {

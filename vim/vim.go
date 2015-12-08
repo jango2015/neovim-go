@@ -9,8 +9,8 @@ import (
 	"io"
 	"sync"
 
-	"github.com/garyburd/nvimgo/msgpack"
-	"github.com/garyburd/nvimgo/msgpack/rpc"
+	"github.com/garyburd/neovim-go/msgpack"
+	"github.com/garyburd/neovim-go/msgpack/rpc"
 )
 
 // Vim represents a remote instance of Neovim.

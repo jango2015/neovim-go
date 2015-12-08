@@ -12,7 +12,7 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/garyburd/nvimgo/msgpack"
+	"github.com/garyburd/neovim-go/msgpack"
 )
 
 const (

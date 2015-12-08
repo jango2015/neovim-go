@@ -14,7 +14,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/garyburd/nvimgo/msgpack"
+	"github.com/garyburd/neovim-go/msgpack"
 )
 
 func main() {
