@@ -35,7 +35,7 @@ type me struct {
 }
 
 func (m me) MarshalMsgPack(enc *Encoder) error {
-	return enc.PackString(m.s, false)
+	return enc.PackString(m.s)
 }
 
 var encodeTests = []struct {

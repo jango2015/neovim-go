@@ -86,12 +86,14 @@ func (e *Encoder) encodeNum(fc *numCodes, v uint64) []byte {
 	}
 }
 
+// PackNil writes a Nil value to the MsgPack stream.
 func (e *Encoder) PackNil() error {
 	e.buf[0] = nilCode
 	_, err := e.w.Write(e.buf[:1])
 	return err
 }
 
+// PackBool writes a Bool value to the MsgPack stream.
 func (e *Encoder) PackBool(b bool) error {
 	if b {
 		e.buf[0] = trueCode
@@ -102,6 +104,7 @@ func (e *Encoder) PackBool(b bool) error {
 	return err
 }
 
+// PackInt packs an Int value to the MsgPack stream.
 func (e *Encoder) PackInt(v int64) error {
 	var b []byte
 	switch {
@@ -146,6 +149,7 @@ func (e *Encoder) PackInt(v int64) error {
 	return err
 }
 
+// PackUint packs a Uint value to the message pack stream.
 func (e *Encoder) PackUint(v uint64) error {
 	var b []byte
 	if v <= math.MaxInt8 {
@@ -174,14 +178,19 @@ func (e *Encoder) packArrayMapLen(fixMin int, fc *numCodes, v int) error {
 	return err
 }
 
+// PackArrayLen write an Array length to the MsgPack stream. The application
+// must write n objects to the stream following this call.
 func (e *Encoder) PackArrayLen(n int) error {
 	return e.packArrayMapLen(fixArrayCodeMin, arrayLenEncodings, n)
 }
 
+// PackMapLen write an Map length to the MsgPack stream. The application must
+// write n key-value pairs to the stream following this call.
 func (e *Encoder) PackMapLen(n int) error {
 	return e.packArrayMapLen(fixMapCodeMin, mapLenEncodings, n)
 }
 
+// PackExtension writes an extension to the MsgPack stream.
 func (e *Encoder) PackExtension(kind int, data []byte) error {
 	var b []byte
 	switch len(data) {
@@ -235,22 +244,34 @@ func (e *Encoder) packStringBinaryLen(n int, binary bool) error {
 	return err
 }
 
-func (e *Encoder) PackString(v string, binary bool) error {
-	if err := e.packStringBinaryLen(len(v), binary); err != nil {
+// PackString writes a String value to the MsgPack stream.
+func (e *Encoder) PackString(v string) error {
+	if err := e.packStringBinaryLen(len(v), false); err != nil {
 		return err
 	}
 	_, err := e.writeString(v)
 	return err
 }
 
-func (e *Encoder) PackBytes(v []byte, binary bool) error {
-	if err := e.packStringBinaryLen(len(v), binary); err != nil {
+// PackStringBytes writes a String value to the MsgPack stream.
+func (e *Encoder) PackStringBytes(v []byte) error {
+	if err := e.packStringBinaryLen(len(v), false); err != nil {
 		return err
 	}
 	_, err := e.w.Write(v)
 	return err
 }
 
+// PackBinary writes a Binary value to the MsgPack stream.
+func (e *Encoder) PackBinary(v []byte) error {
+	if err := e.packStringBinaryLen(len(v), true); err != nil {
+		return err
+	}
+	_, err := e.w.Write(v)
+	return err
+}
+
+// PackFloat writes a Float value to the MsgPack stream.
 func (e *Encoder) PackFloat(f float64) error {
 	n := math.Float64bits(f)
 	e.buf[0] = float64Code

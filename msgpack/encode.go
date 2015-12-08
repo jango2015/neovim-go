@@ -134,13 +134,13 @@ func floatEncoder(e *Encoder, v reflect.Value) {
 }
 
 func stringEncoder(e *Encoder, v reflect.Value) {
-	if err := e.PackString(v.String(), false); err != nil {
+	if err := e.PackString(v.String()); err != nil {
 		abort(err)
 	}
 }
 
 func byteSliceEncoder(e *Encoder, v reflect.Value) {
-	if err := e.PackBytes(v.Bytes(), true); err != nil {
+	if err := e.PackBinary(v.Bytes()); err != nil {
 		abort(err)
 	}
 }
@@ -219,6 +219,8 @@ func (b *encodeBuilder) sliceEncoder(t reflect.Type) encodeFunc {
 	return sliceArrayEncoder{encoderForType(t.Elem(), b)}.encodeSlice
 }
 
+// Marshaler is the interface implemented by objects that can encode themselves
+// to a MsgPack stream.
 type Marshaler interface {
 	MarshalMsgPack(e *Encoder) error
 }
@@ -283,7 +285,7 @@ func (enc structEncoder) encode(e *Encoder, v reflect.Value) {
 		if !fv.IsValid() || (fe.empty != nil && fe.empty(fv)) {
 			continue
 		}
-		if err := e.PackString(fe.name, false); err != nil {
+		if err := e.PackString(fe.name); err != nil {
 			abort(err)
 		}
 		fe.f(e, fv)

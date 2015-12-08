@@ -477,6 +477,8 @@ func (b *decodeBuilder) ptrDecoder(t reflect.Type) decodeFunc {
 	return ptrDecoder{elem: decoderForType(t.Elem(), b)}.decode
 }
 
+// Unmarshaler is the interface implemented by objects that can decode
+// themselves from a MsgPack stream.
 type Unmarshaler interface {
 	UnmarshalMsgPack(ds *Decoder) error
 }
@@ -579,9 +581,14 @@ func decodeNoReflect(ds *decodeState) (x interface{}) {
 	}
 }
 
+// DecodeConvertError describes a MsgPack value that was not appropriate for a
+// value of a specific Go type.
 type DecodeConvertError struct {
-	SrcType  Type
+	// The MsgPack type of the value.
+	SrcType Type
+	// Option value.
 	SrcValue interface{}
+	// Type of the Go value that could not be assigned to.
 	DestType reflect.Type
 }
 

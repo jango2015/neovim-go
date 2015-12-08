@@ -105,9 +105,9 @@ func pack(vs ...interface{}) ([]byte, error) {
 		case mapLen:
 			err = enc.PackMapLen(int(v))
 		case string:
-			err = enc.PackString(v, false)
+			err = enc.PackString(v)
 		case []byte:
-			err = enc.PackBytes(v, true)
+			err = enc.PackBinary(v)
 		case extension:
 			err = enc.PackExtension(v.k, []byte(v.d))
 		case nil:

@@ -68,7 +68,7 @@ func (v *Vim) ChannelID() (int, error) {
 type marshalAsString []byte
 
 func (m marshalAsString) MarshalMsgPack(enc *msgpack.Encoder) error {
-	return enc.PackBytes([]byte(m), false)
+	return enc.PackStringBytes([]byte(m))
 }
 
 type marshalAsStrings [][]byte
@@ -78,7 +78,7 @@ func (m marshalAsStrings) MarshalMsgPack(enc *msgpack.Encoder) error {
 		return err
 	}
 	for _, p := range m {
-		if err := enc.PackBytes(p, false); err != nil {
+		if err := enc.PackStringBytes(p); err != nil {
 			return err
 		}
 	}
