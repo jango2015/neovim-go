@@ -8,7 +8,6 @@ package gofmt
 import (
 	"bytes"
 	"go/format"
-	"log"
 
 	"github.com/garyburd/nvimgo/vim"
 )

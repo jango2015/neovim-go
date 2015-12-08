@@ -158,7 +158,7 @@ func TestAPI(t *testing.T) {
 
 func TestPlugin(t *testing.T) {
 	v, cleanup := vimtest.New(t, func(v *vim.Vim) error {
-		return v.RegisterFunction("Hello", helloFunc)
+		return v.RegisterFunction("Hello", nil, helloFunc)
 	})
 	defer cleanup()
 

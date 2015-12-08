@@ -29,9 +29,21 @@ func (v *Vim) RegisterHandler(serviceMethod string, handler interface{}) error {
 	return v.ep.RegisterHandler(serviceMethod, handler)
 }
 
-var noOptions = make(map[string]string)
+// FunctionOptions specifies registered function options.
+type FunctionOptions struct {
+	// Eval is evaluated in Neovim and the result is passed the the handler
+	// function.
+	Eval string
+}
 
-func (v *Vim) RegisterFunction(name string, handler interface{}) error {
+func (v *Vim) RegisterFunction(name string, options *FunctionOptions, handler interface{}) error {
+	m := make(map[string]string)
+	if options != nil {
+		if options.Eval != "" {
+			m["eval"] = options.Eval
+		}
+	}
+
 	if err := v.ep.RegisterHandler(v.PluginPath+":function:"+name, handler); err != nil {
 		return err
 	}
@@ -39,7 +51,7 @@ func (v *Vim) RegisterFunction(name string, handler interface{}) error {
 		Type: "function",
 		Name: name,
 		Sync: isSync(handler),
-		Opts: noOptions,
+		Opts: m,
 	})
 	return nil
 }
@@ -97,7 +109,7 @@ type CommandOptions struct {
 	// optional register name (like :del, :put, :yank).
 	Register bool
 
-	// Eval is evaluated in Neovim and the result is provided in CommandArgs.
+	// Eval is evaluated in Neovim and the result is passed as an argument.
 	Eval string
 
 	// Bar specifies that the command can be followed by a "|" and another
@@ -111,53 +123,48 @@ type CommandOptions struct {
 	Complete string
 }
 
-func mapFromCommandOptions(o *CommandOptions) map[string]string {
-	m := make(map[string]string)
-	if o == nil {
-		return m
-	}
-
-	if o.NArgs != "" {
-		m["nargs"] = o.NArgs
-	}
-
-	if o.Range != "" {
-		if o.Range == "." {
-			o.Range = ""
-		}
-		m["range"] = o.Range
-	} else if o.Count != "" {
-		m["count"] = o.Count
-	}
-
-	if o.Bang {
-		m["bang"] = ""
-	}
-
-	if o.Register {
-		m["register"] = ""
-	}
-
-	if o.Eval != "" {
-		m["eval"] = o.Eval
-	}
-
-	if o.Addr != "" {
-		m["addr"] = o.Addr
-	}
-
-	if o.Bar {
-		m["bar"] = ""
-	}
-
-	if o.Complete != "" {
-		m["complete"] = o.Complete
-	}
-
-	return m
-}
-
 func (v *Vim) RegisterCommand(name string, options *CommandOptions, handler interface{}) error {
+	m := make(map[string]string)
+	if options != nil {
+
+		if options.NArgs != "" {
+			m["nargs"] = options.NArgs
+		}
+
+		if options.Range != "" {
+			if options.Range == "." {
+				options.Range = ""
+			}
+			m["range"] = options.Range
+		} else if options.Count != "" {
+			m["count"] = options.Count
+		}
+
+		if options.Bang {
+			m["bang"] = ""
+		}
+
+		if options.Register {
+			m["register"] = ""
+		}
+
+		if options.Eval != "" {
+			m["eval"] = options.Eval
+		}
+
+		if options.Addr != "" {
+			m["addr"] = options.Addr
+		}
+
+		if options.Bar {
+			m["bar"] = ""
+		}
+
+		if options.Complete != "" {
+			m["complete"] = options.Complete
+		}
+	}
+
 	sm := fmt.Sprintf("%s:command:%s", v.PluginPath, name)
 	if err := v.ep.RegisterHandler(sm, handler); err != nil {
 		return err
@@ -167,7 +174,7 @@ func (v *Vim) RegisterCommand(name string, options *CommandOptions, handler inte
 		Type: "command",
 		Name: name,
 		Sync: isSync(handler),
-		Opts: mapFromCommandOptions(options),
+		Opts: m,
 	})
 	return nil
 }
@@ -189,31 +196,24 @@ type AutocmdOptions struct {
 	Eval string
 }
 
-func mapFromAutocmdOptions(o *AutocmdOptions) map[string]string {
-	m := make(map[string]string)
-	if o == nil {
-		return m
-	}
-
-	if o.Pattern != "" {
-		m["pattern"] = o.Pattern
-	}
-
-	if o.Nested {
-		m["nested"] = ""
-	}
-
-	if o.Eval != "" {
-		m["eval"] = o.Eval
-	}
-
-	return m
-}
-
 func (v *Vim) RegisterAutocmd(event string, options *AutocmdOptions, handler interface{}) error {
 	pattern := ""
+	m := make(map[string]string)
 	if options != nil {
-		pattern = options.Pattern
+
+		if options.Pattern != "" {
+			m["pattern"] = options.Pattern
+			pattern = options.Pattern
+		}
+
+		if options.Nested {
+			m["nested"] = ""
+		}
+
+		if options.Eval != "" {
+			m["eval"] = options.Eval
+		}
+
 	}
 
 	sm := fmt.Sprintf("%s:autocmd:%s:%s", v.PluginPath, event, pattern)
@@ -225,7 +225,7 @@ func (v *Vim) RegisterAutocmd(event string, options *AutocmdOptions, handler int
 		Type: "autocmd",
 		Name: event,
 		Sync: isSync(handler),
-		Opts: mapFromAutocmdOptions(options),
+		Opts: m,
 	})
 
 	return nil
