@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package vim is an Neovim remote plugin peer.
+// Package vim is a Neovim remote plugin peer.
 package vim
 
 import (
@@ -32,6 +32,7 @@ func (v *Vim) Close() error {
 	return v.ep.Close()
 }
 
+// New creates a new peer.
 func New(rwc io.ReadWriteCloser, logf func(string, ...interface{})) (*Vim, error) {
 	v := &Vim{pluginSpecs: []*pluginSpec{}}
 

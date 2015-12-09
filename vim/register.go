@@ -123,6 +123,17 @@ type CommandOptions struct {
 	Complete string
 }
 
+// RegisterCommand registers a handler for a command with the given options.
+//
+// The arguments to the handler function are:
+//
+//  v *vim.Vim
+//  args []string       when NArgs != ""
+//  range [2]int        when Range == "." or Range == "%"
+//  range int           when Range == N or Count != ""
+//  bang bool           when Bang == true
+//  register string     when Register == true
+//  eval interface{}    when Eval != ""
 func (v *Vim) RegisterCommand(name string, options *CommandOptions, handler interface{}) error {
 	m := make(map[string]string)
 	if options != nil {
