@@ -16,6 +16,9 @@ const (
 	bufferExt  = 0
 	windowExt  = 1
 	tabpageExt = 2
+
+	exceptionError  = 0
+	validationError = 1
 )
 
 func withExtensions() rpc.Option {

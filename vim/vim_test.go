@@ -154,6 +154,29 @@ func TestAPI(t *testing.T) {
 		t.Fatalf("lines = %+v, want %+v", lines2, lines)
 	}
 
+	// Vars
+
+	if err := v.SetVar("foo", "bar", nil); err != nil {
+		t.Fatal(err)
+	}
+	var foo interface{}
+	if err := v.Var("foo", &foo); err != nil {
+		t.Fatal(err)
+	}
+	if foo != "bar" {
+		t.Errorf("got %v, want %q", foo, "bar")
+	}
+	if err := v.SetVar("foo", "", nil); err != nil {
+		t.Fatal(err)
+	}
+	foo = nil
+	if err := v.Var("foo", &foo); err != nil {
+		t.Fatal(err)
+	}
+	if foo != "" {
+		t.Errorf("got %v, want %q", foo, "")
+	}
+
 }
 
 func TestPlugin(t *testing.T) {

@@ -26,6 +26,14 @@ var (
 	errInternal = errors.New("msgpack/rpc: internal error")
 )
 
+type Error struct {
+	Value interface{}
+}
+
+func (e Error) Error() string {
+	return fmt.Sprintf("%v", e.Value)
+}
+
 type Call struct {
 	ServiceMethod string
 	Args          interface{}
@@ -323,15 +331,15 @@ func (e *Endpoint) handleReply(messageLen int) error {
 		return e.skip(2)
 	}
 
-	var eval interface{}
-	if err := e.dec.Decode(&eval); err != nil {
+	var errorValue interface{}
+	if err := e.dec.Decode(&errorValue); err != nil {
 		call.done(e, errInternal)
 		return fmt.Errorf("msgpack/rpc: error decoding error value: %v", err)
 	}
 
-	if eval != nil {
+	if errorValue != nil {
 		err := e.skip(1)
-		call.done(e, fmt.Errorf("%v", eval))
+		call.done(e, Error{errorValue})
 		return err
 	}
 

@@ -46,7 +46,7 @@ type numCodes struct {
 }
 
 var (
-	stringLenEnodingss = &numCodes{string8Code, string16Code, string32Code, 0}
+	stringLenEncodings = &numCodes{string8Code, string16Code, string32Code, 0}
 	binaryLenEncodings = &numCodes{binary8Code, binary16Code, binary32Code, 0}
 	arrayLenEncodings  = &numCodes{0, array16Code, array32Code, 0}
 	mapLenEncodings    = &numCodes{0, map16Code, map32Code, 0}
@@ -225,20 +225,18 @@ func (e *Encoder) PackExtension(kind int, data []byte) error {
 	return err
 }
 
-func (e *Encoder) packStringBinaryLen(n int, binary bool) error {
-	if n > math.MaxUint32 {
-		return errors.New("msgpack: long string or binary")
-	}
+func (e *Encoder) packStringLen(n int) error {
 	var b []byte
-	if !binary && n < 32 {
+	if n < 32 && n != 0 {
+		// TODO: remove n != 0 condition.
+		// The string "" is not encoded as 0xa0 to avoid possible bug in
+		// Neovim.
 		e.buf[0] = byte(fixStringCodeMin + n)
 		b = e.buf[:1]
+	} else if n <= math.MaxUint32 {
+		b = e.encodeNum(stringLenEncodings, uint64(n))
 	} else {
-		f := stringLenEnodingss
-		if binary {
-			f = binaryLenEncodings
-		}
-		b = e.encodeNum(f, uint64(n))
+		return errors.New("msgpack: long string or binary")
 	}
 	_, err := e.w.Write(b)
 	return err
@@ -246,7 +244,7 @@ func (e *Encoder) packStringBinaryLen(n int, binary bool) error {
 
 // PackString writes a String value to the MsgPack stream.
 func (e *Encoder) PackString(v string) error {
-	if err := e.packStringBinaryLen(len(v), false); err != nil {
+	if err := e.packStringLen(len(v)); err != nil {
 		return err
 	}
 	_, err := e.writeString(v)
@@ -255,7 +253,7 @@ func (e *Encoder) PackString(v string) error {
 
 // PackStringBytes writes a String value to the MsgPack stream.
 func (e *Encoder) PackStringBytes(v []byte) error {
-	if err := e.packStringBinaryLen(len(v), false); err != nil {
+	if err := e.packStringLen(len(v)); err != nil {
 		return err
 	}
 	_, err := e.w.Write(v)
@@ -264,7 +262,10 @@ func (e *Encoder) PackStringBytes(v []byte) error {
 
 // PackBinary writes a Binary value to the MsgPack stream.
 func (e *Encoder) PackBinary(v []byte) error {
-	if err := e.packStringBinaryLen(len(v), true); err != nil {
+	if len(v) > math.MaxUint32 {
+		return errors.New("msgpack: long string or binary")
+	}
+	if _, err := e.w.Write(e.encodeNum(binaryLenEncodings, uint64(len(v)))); err != nil {
 		return err
 	}
 	_, err := e.w.Write(v)
