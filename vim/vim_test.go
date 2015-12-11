@@ -6,67 +6,14 @@ package vim_test
 
 import (
 	"reflect"
-	"strings"
 	"testing"
 
-	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/vimtest"
 )
-
-func helloHandler(v *vim.Vim, s string) (string, error) {
-	return "Hello, " + s, nil
-}
-
-func helloFunc(v *vim.Vim, args []string) (string, error) {
-	return "Hello, " + strings.Join(args, " "), nil
-}
-
-func TestRegister(t *testing.T) {
-	v, cleanup := vimtest.New(t)
-	defer cleanup()
-
-	cid, err := v.ChannelID()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := v.RegisterHandler("hello", helloHandler); err != nil {
-		t.Fatal(err)
-	}
-
-	var result string
-	if err := v.Call("rpcrequest", &result, cid, "hello", "world"); err != nil {
-		t.Fatal(err)
-	}
-
-	expected := "Hello, world"
-	if result != expected {
-		t.Errorf("hello returned %q, want %q", result, expected)
-	}
-}
 
 func TestAPI(t *testing.T) {
 	v, cleanup := vimtest.New(t)
 	defer cleanup()
-
-	cid, err := v.ChannelID()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := v.RegisterHandler("hello", helloHandler); err != nil {
-		t.Fatal(err)
-	}
-
-	var result string
-	if err := v.Call("rpcrequest", &result, cid, "hello", "world"); err != nil {
-		t.Fatal(err)
-	}
-
-	expected := "Hello, world"
-	if result != expected {
-		t.Errorf("hello returned %q, want %q", result, expected)
-	}
 
 	// Buffers
 
@@ -177,20 +124,4 @@ func TestAPI(t *testing.T) {
 		t.Errorf("got %v, want %q", foo, "")
 	}
 
-}
-
-func TestPlugin(t *testing.T) {
-	v, cleanup := vimtest.New(t, func(v *vim.Vim) error {
-		return v.RegisterFunction("Hello", nil, helloFunc)
-	})
-	defer cleanup()
-
-	result, err := v.CommandOutput(":echo Hello('John', 'Doe')")
-	if err != nil {
-		t.Error(err)
-	}
-	expected := "\nHello, John Doe"
-	if result != expected {
-		t.Errorf("Hello returned %q, want %q", result, expected)
-	}
 }

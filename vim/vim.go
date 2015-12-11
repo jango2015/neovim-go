@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package vim is a Neovim remote plugin peer.
+// Package vim contains a Neovim remote peer and a Neovim remote plugin host.
 package vim
 
 import (

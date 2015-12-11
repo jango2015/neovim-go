@@ -263,8 +263,10 @@ func (e *Endpoint) reply(id uint64, replyErr error, reply interface{}) error {
 
 	if replyErr == nil {
 		err = e.enc.PackNil()
-	} else if m, ok := replyErr.(msgpack.Marshaler); ok {
-		err = m.MarshalMsgPack(e.enc)
+	} else if ee, ok := replyErr.(Error); ok {
+		err = e.enc.Encode(ee.Value)
+	} else if ee, ok := replyErr.(msgpack.Marshaler); ok {
+		err = ee.MarshalMsgPack(e.enc)
 	} else {
 		err = e.enc.PackString(replyErr.Error())
 	}
