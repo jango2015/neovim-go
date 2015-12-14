@@ -5,6 +5,7 @@
 package vim_test
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -14,6 +15,29 @@ import (
 func TestAPI(t *testing.T) {
 	v, cleanup := vimtest.New(t)
 	defer cleanup()
+
+	cid, err := v.ChannelID()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	{
+		// Simple handler.
+
+		if err := v.RegisterHandler("hello", helloHandler); err != nil {
+			t.Fatal(err)
+		}
+
+		var result string
+		if err := v.Call("rpcrequest", &result, cid, "hello", "world"); err != nil {
+			t.Fatal(err)
+		}
+
+		expected := "Hello, world"
+		if result != expected {
+			t.Errorf("hello returned %q, want %q", result, expected)
+		}
+	}
 
 	// Buffers
 
@@ -122,6 +146,31 @@ func TestAPI(t *testing.T) {
 	}
 	if foo != "" {
 		t.Errorf("got %v, want %q", foo, "")
+	}
+
+	{
+		// Batch
+
+		b := v.NewBatch()
+		results := make([]int, 128)
+
+		for i := range results {
+			b.SetVar(fmt.Sprintf("v%d", i), i, nil)
+		}
+
+		for i := range results {
+			b.Var(fmt.Sprintf("v%d", i), &results[i])
+		}
+
+		if err := b.Wait(); err != nil {
+			t.Fatal(err)
+		}
+
+		for i := range results {
+			if results[i] != i {
+				t.Fatalf("result = %d, want %d", results[i], i)
+			}
+		}
 	}
 
 }
