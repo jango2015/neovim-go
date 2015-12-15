@@ -149,20 +149,20 @@ func TestAPI(t *testing.T) {
 	}
 
 	{
-		// Batch
+		// Pipeline
 
-		b := v.NewBatch()
+		p := v.NewPipeline()
 		results := make([]int, 128)
 
 		for i := range results {
-			b.SetVar(fmt.Sprintf("v%d", i), i, nil)
+			p.SetVar(fmt.Sprintf("v%d", i), i, nil)
 		}
 
 		for i := range results {
-			b.Var(fmt.Sprintf("v%d", i), &results[i])
+			p.Var(fmt.Sprintf("v%d", i), &results[i])
 		}
 
-		if err := b.Wait(); err != nil {
+		if err := p.Wait(); err != nil {
 			t.Fatal(err)
 		}
 
@@ -170,6 +170,16 @@ func TestAPI(t *testing.T) {
 			if results[i] != i {
 				t.Fatalf("result = %d, want %d", results[i], i)
 			}
+		}
+	}
+
+	{
+		// Call with no args.
+
+		var wd string
+		err := v.Call("getcwd", &wd)
+		if err != nil {
+			t.Fatal(err)
 		}
 	}
 

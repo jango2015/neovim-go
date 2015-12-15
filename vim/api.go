@@ -2,146 +2,182 @@
 
 package vim
 
+// BufferLineCount returns the number of lines in the buffer.
 func (v *Vim) BufferLineCount(buffer Buffer) (int, error) {
 	var result int
 	err := v.call("buffer_line_count", &result, buffer)
 	return result, err
 }
 
-func (b *Batch) BufferLineCount(buffer Buffer, result *int) {
-	b.call("buffer_line_count", result, buffer)
+// BufferLineCount returns the number of lines in the buffer.
+func (p *Pipeline) BufferLineCount(buffer Buffer, result *int) {
+	p.call("buffer_line_count", result, buffer)
 }
 
+// BufferLine returns the line at the given index.
 func (v *Vim) BufferLine(buffer Buffer, index int) ([]byte, error) {
 	var result []byte
 	err := v.call("buffer_get_line", &result, buffer, index)
 	return result, err
 }
 
-func (b *Batch) BufferLine(buffer Buffer, index int, result *[]byte) {
-	b.call("buffer_get_line", result, buffer, index)
+// BufferLine returns the line at the given index.
+func (p *Pipeline) BufferLine(buffer Buffer, index int, result *[]byte) {
+	p.call("buffer_get_line", result, buffer, index)
 }
 
+// SetBufferLine sets the line at the given index.
 func (v *Vim) SetBufferLine(buffer Buffer, index int, line []byte) error {
 	return v.call("buffer_set_line", nil, buffer, index, line)
 }
 
-func (b *Batch) SetBufferLine(buffer Buffer, index int, line []byte) {
-	b.call("buffer_set_line", nil, buffer, index, line)
+// SetBufferLine sets the line at the given index.
+func (p *Pipeline) SetBufferLine(buffer Buffer, index int, line []byte) {
+	p.call("buffer_set_line", nil, buffer, index, line)
 }
 
+// DeleteBufferLine deletes the line at the given index.
 func (v *Vim) DeleteBufferLine(buffer Buffer, index int) error {
 	return v.call("buffer_del_line", nil, buffer, index)
 }
 
-func (b *Batch) DeleteBufferLine(buffer Buffer, index int) {
-	b.call("buffer_del_line", nil, buffer, index)
+// DeleteBufferLine deletes the line at the given index.
+func (p *Pipeline) DeleteBufferLine(buffer Buffer, index int) {
+	p.call("buffer_del_line", nil, buffer, index)
 }
 
+// BufferLineSlice retrieves a line range from a buffer.
 func (v *Vim) BufferLineSlice(buffer Buffer, start int, end int, includeStart bool, includeEnd bool) ([][]byte, error) {
 	var result [][]byte
 	err := v.call("buffer_get_line_slice", &result, buffer, start, end, includeStart, includeEnd)
 	return result, err
 }
 
-func (b *Batch) BufferLineSlice(buffer Buffer, start int, end int, includeStart bool, includeEnd bool, result *[][]byte) {
-	b.call("buffer_get_line_slice", result, buffer, start, end, includeStart, includeEnd)
+// BufferLineSlice retrieves a line range from a buffer.
+func (p *Pipeline) BufferLineSlice(buffer Buffer, start int, end int, includeStart bool, includeEnd bool, result *[][]byte) {
+	p.call("buffer_get_line_slice", result, buffer, start, end, includeStart, includeEnd)
 }
 
+// SetBufferLineSlice replaces a line range on a buffer.
 func (v *Vim) SetBufferLineSlice(buffer Buffer, start int, end int, includeStart bool, includeEnd bool, replacement [][]byte) error {
 	return v.call("buffer_set_line_slice", nil, buffer, start, end, includeStart, includeEnd, replacement)
 }
 
-func (b *Batch) SetBufferLineSlice(buffer Buffer, start int, end int, includeStart bool, includeEnd bool, replacement [][]byte) {
-	b.call("buffer_set_line_slice", nil, buffer, start, end, includeStart, includeEnd, replacement)
+// SetBufferLineSlice replaces a line range on a buffer.
+func (p *Pipeline) SetBufferLineSlice(buffer Buffer, start int, end int, includeStart bool, includeEnd bool, replacement [][]byte) {
+	p.call("buffer_set_line_slice", nil, buffer, start, end, includeStart, includeEnd, replacement)
 }
 
+// BufferVar gets a buffer-scoped (b:) variable.
 func (v *Vim) BufferVar(buffer Buffer, name string, result interface{}) error {
 	return v.call("buffer_get_var", result, buffer, name)
 }
 
-func (b *Batch) BufferVar(buffer Buffer, name string, result interface{}) {
-	b.call("buffer_get_var", result, buffer, name)
+// BufferVar gets a buffer-scoped (b:) variable.
+func (p *Pipeline) BufferVar(buffer Buffer, name string, result interface{}) {
+	p.call("buffer_get_var", result, buffer, name)
 }
 
+// SetBufferVar sets a buffer-scoped (b:) variable. The value nil deletes the
+// variable. Result is the previous value of the variable.
 func (v *Vim) SetBufferVar(buffer Buffer, name string, value interface{}, result interface{}) error {
 	return v.call("buffer_set_var", result, buffer, name, value)
 }
 
-func (b *Batch) SetBufferVar(buffer Buffer, name string, value interface{}, result interface{}) {
-	b.call("buffer_set_var", result, buffer, name, value)
+// SetBufferVar sets a buffer-scoped (b:) variable. The value nil deletes the
+// variable. Result is the previous value of the variable.
+func (p *Pipeline) SetBufferVar(buffer Buffer, name string, value interface{}, result interface{}) {
+	p.call("buffer_set_var", result, buffer, name, value)
 }
 
+// BufferOption gets a buffer option value.
 func (v *Vim) BufferOption(buffer Buffer, name string, result interface{}) error {
 	return v.call("buffer_get_option", result, buffer, name)
 }
 
-func (b *Batch) BufferOption(buffer Buffer, name string, result interface{}) {
-	b.call("buffer_get_option", result, buffer, name)
+// BufferOption gets a buffer option value.
+func (p *Pipeline) BufferOption(buffer Buffer, name string, result interface{}) {
+	p.call("buffer_get_option", result, buffer, name)
 }
 
+// SetBufferOption sets a buffer option value. The value nil deletes the option
+// in the case where there's a global fallback.
 func (v *Vim) SetBufferOption(buffer Buffer, name string, value interface{}) error {
 	return v.call("buffer_set_option", nil, buffer, name, value)
 }
 
-func (b *Batch) SetBufferOption(buffer Buffer, name string, value interface{}) {
-	b.call("buffer_set_option", nil, buffer, name, value)
+// SetBufferOption sets a buffer option value. The value nil deletes the option
+// in the case where there's a global fallback.
+func (p *Pipeline) SetBufferOption(buffer Buffer, name string, value interface{}) {
+	p.call("buffer_set_option", nil, buffer, name, value)
 }
 
+// BufferNumber gets a buffer's number.
 func (v *Vim) BufferNumber(buffer Buffer) (int, error) {
 	var result int
 	err := v.call("buffer_get_number", &result, buffer)
 	return result, err
 }
 
-func (b *Batch) BufferNumber(buffer Buffer, result *int) {
-	b.call("buffer_get_number", result, buffer)
+// BufferNumber gets a buffer's number.
+func (p *Pipeline) BufferNumber(buffer Buffer, result *int) {
+	p.call("buffer_get_number", result, buffer)
 }
 
+// BufferName gets the full file name of a buffer.
 func (v *Vim) BufferName(buffer Buffer) (string, error) {
 	var result string
 	err := v.call("buffer_get_name", &result, buffer)
 	return result, err
 }
 
-func (b *Batch) BufferName(buffer Buffer, result *string) {
-	b.call("buffer_get_name", result, buffer)
+// BufferName gets the full file name of a buffer.
+func (p *Pipeline) BufferName(buffer Buffer, result *string) {
+	p.call("buffer_get_name", result, buffer)
 }
 
+// SetBufferName sets the full file name of a buffer.
 func (v *Vim) SetBufferName(buffer Buffer, name string) error {
 	return v.call("buffer_set_name", nil, buffer, name)
 }
 
-func (b *Batch) SetBufferName(buffer Buffer, name string) {
-	b.call("buffer_set_name", nil, buffer, name)
+// SetBufferName sets the full file name of a buffer.
+func (p *Pipeline) SetBufferName(buffer Buffer, name string) {
+	p.call("buffer_set_name", nil, buffer, name)
 }
 
+// IsBufferValid returns true if the buffer is valid.
 func (v *Vim) IsBufferValid(buffer Buffer) (bool, error) {
 	var result bool
 	err := v.call("buffer_is_valid", &result, buffer)
 	return result, err
 }
 
-func (b *Batch) IsBufferValid(buffer Buffer, result *bool) {
-	b.call("buffer_is_valid", result, buffer)
+// IsBufferValid returns true if the buffer is valid.
+func (p *Pipeline) IsBufferValid(buffer Buffer, result *bool) {
+	p.call("buffer_is_valid", result, buffer)
 }
 
+// InsertBUffer inserts a range of lines to a buffer at the specified index.
 func (v *Vim) InsertBuffer(buffer Buffer, lnum int, lines [][]byte) error {
 	return v.call("buffer_insert", nil, buffer, lnum, lines)
 }
 
-func (b *Batch) InsertBuffer(buffer Buffer, lnum int, lines [][]byte) {
-	b.call("buffer_insert", nil, buffer, lnum, lines)
+// InsertBUffer inserts a range of lines to a buffer at the specified index.
+func (p *Pipeline) InsertBuffer(buffer Buffer, lnum int, lines [][]byte) {
+	p.call("buffer_insert", nil, buffer, lnum, lines)
 }
 
+// BufferMark returns the (row,col) of the named mark.
 func (v *Vim) BufferMark(buffer Buffer, name string) ([2]int, error) {
 	var result [2]int
 	err := v.call("buffer_get_mark", &result, buffer, name)
 	return result, err
 }
 
-func (b *Batch) BufferMark(buffer Buffer, name string, result *[2]int) {
-	b.call("buffer_get_mark", result, buffer, name)
+// BufferMark returns the (row,col) of the named mark.
+func (p *Pipeline) BufferMark(buffer Buffer, name string, result *[2]int) {
+	p.call("buffer_get_mark", result, buffer, name)
 }
 
 func (v *Vim) TabpageWindows(tabpage Tabpage) ([]Window, error) {
@@ -150,24 +186,24 @@ func (v *Vim) TabpageWindows(tabpage Tabpage) ([]Window, error) {
 	return result, err
 }
 
-func (b *Batch) TabpageWindows(tabpage Tabpage, result *[]Window) {
-	b.call("tabpage_get_windows", result, tabpage)
+func (p *Pipeline) TabpageWindows(tabpage Tabpage, result *[]Window) {
+	p.call("tabpage_get_windows", result, tabpage)
 }
 
 func (v *Vim) TabpageVar(tabpage Tabpage, name string, result interface{}) error {
 	return v.call("tabpage_get_var", result, tabpage, name)
 }
 
-func (b *Batch) TabpageVar(tabpage Tabpage, name string, result interface{}) {
-	b.call("tabpage_get_var", result, tabpage, name)
+func (p *Pipeline) TabpageVar(tabpage Tabpage, name string, result interface{}) {
+	p.call("tabpage_get_var", result, tabpage, name)
 }
 
 func (v *Vim) SetTabpageVar(tabpage Tabpage, name string, value interface{}, result interface{}) error {
 	return v.call("tabpage_set_var", result, tabpage, name, value)
 }
 
-func (b *Batch) SetTabpageVar(tabpage Tabpage, name string, value interface{}, result interface{}) {
-	b.call("tabpage_set_var", result, tabpage, name, value)
+func (p *Pipeline) SetTabpageVar(tabpage Tabpage, name string, value interface{}, result interface{}) {
+	p.call("tabpage_set_var", result, tabpage, name, value)
 }
 
 func (v *Vim) TabpageWindow(tabpage Tabpage) (Window, error) {
@@ -176,8 +212,8 @@ func (v *Vim) TabpageWindow(tabpage Tabpage) (Window, error) {
 	return result, err
 }
 
-func (b *Batch) TabpageWindow(tabpage Tabpage, result *Window) {
-	b.call("tabpage_get_window", result, tabpage)
+func (p *Pipeline) TabpageWindow(tabpage Tabpage, result *Window) {
+	p.call("tabpage_get_window", result, tabpage)
 }
 
 func (v *Vim) IsTabpageValid(tabpage Tabpage) (bool, error) {
@@ -186,8 +222,8 @@ func (v *Vim) IsTabpageValid(tabpage Tabpage) (bool, error) {
 	return result, err
 }
 
-func (b *Batch) IsTabpageValid(tabpage Tabpage, result *bool) {
-	b.call("tabpage_is_valid", result, tabpage)
+func (p *Pipeline) IsTabpageValid(tabpage Tabpage, result *bool) {
+	p.call("tabpage_is_valid", result, tabpage)
 }
 
 // Command executes a single ex command.
@@ -196,8 +232,8 @@ func (v *Vim) Command(str string) error {
 }
 
 // Command executes a single ex command.
-func (b *Batch) Command(str string) {
-	b.call("vim_command", nil, str)
+func (p *Pipeline) Command(str string) {
+	p.call("vim_command", nil, str)
 }
 
 // FeedKeys Pushes keys to the Neovim user input buffer. Options can be a string
@@ -218,8 +254,8 @@ func (v *Vim) Feedkeys(keys string, mode string, escapeCsi bool) error {
 //  n:  Do not remap keys.
 //  t:  Handle keys as if typed; otherwise they are handled as if coming from a
 //     mapping. This matters for undo, opening folds, etc.
-func (b *Batch) Feedkeys(keys string, mode string, escapeCsi bool) {
-	b.call("vim_feedkeys", nil, keys, mode, escapeCsi)
+func (p *Pipeline) Feedkeys(keys string, mode string, escapeCsi bool) {
+	p.call("vim_feedkeys", nil, keys, mode, escapeCsi)
 }
 
 // Input pushes bytes to the Neovim low level input buffer.
@@ -238,8 +274,8 @@ func (v *Vim) Input(keys string) (int, error) {
 // Unlike FeedKeys, this uses the lowest level input buffer and the call is not
 // deferred. It returns the number of bytes actually written(which can be less
 // than what was requested if the buffer is full).
-func (b *Batch) Input(keys string, result *int) {
-	b.call("vim_input", result, keys)
+func (p *Pipeline) Input(keys string, result *int) {
+	p.call("vim_input", result, keys)
 }
 
 // ReplaceTermcodes replaces any terminal code strings by byte sequences. The
@@ -266,8 +302,8 @@ func (v *Vim) ReplaceTermcodes(str string, fromPart bool, doLt bool, special boo
 //  <up>  -> '\x80ku'
 //
 // The returned sequences can be used as input to feedkeys.
-func (b *Batch) ReplaceTermcodes(str string, fromPart bool, doLt bool, special bool, result *string) {
-	b.call("vim_replace_termcodes", result, str, fromPart, doLt, special)
+func (p *Pipeline) ReplaceTermcodes(str string, fromPart bool, doLt bool, special bool, result *string) {
+	p.call("vim_replace_termcodes", result, str, fromPart, doLt, special)
 }
 
 // CommandOutput executes a single ex command and returns the output.
@@ -278,32 +314,36 @@ func (v *Vim) CommandOutput(str string) (string, error) {
 }
 
 // CommandOutput executes a single ex command and returns the output.
-func (b *Batch) CommandOutput(str string, result *string) {
-	b.call("vim_command_output", result, str)
+func (p *Pipeline) CommandOutput(str string, result *string) {
+	p.call("vim_command_output", result, str)
 }
 
-// Eval evaluates a vimscript expression.
+// Eval evaluates the expression str using the Vim internal expression
+// evaluator (see |expression|). Dictionaries and lists are recursively
+// expanded. Eval evaluates a vimscript expression.
 func (v *Vim) Eval(str string, result interface{}) error {
 	return v.call("vim_eval", result, str)
 }
 
-// Eval evaluates a vimscript expression.
-func (b *Batch) Eval(str string, result interface{}) {
-	b.call("vim_eval", result, str)
+// Eval evaluates the expression str using the Vim internal expression
+// evaluator (see |expression|). Dictionaries and lists are recursively
+// expanded. Eval evaluates a vimscript expression.
+func (p *Pipeline) Eval(str string, result interface{}) {
+	p.call("vim_eval", result, str)
 }
 
-// Strwidth returns the number of display cells string occupies. Tab is counted
-// as one cell.
+// Strwidth returns the number of display cells the string occupies. Tab is
+// counted as one cell.
 func (v *Vim) Strwidth(str string) (int, error) {
 	var result int
 	err := v.call("vim_strwidth", &result, str)
 	return result, err
 }
 
-// Strwidth returns the number of display cells string occupies. Tab is counted
-// as one cell.
-func (b *Batch) Strwidth(str string, result *int) {
-	b.call("vim_strwidth", result, str)
+// Strwidth returns the number of display cells the string occupies. Tab is
+// counted as one cell.
+func (p *Pipeline) Strwidth(str string, result *int) {
+	p.call("vim_strwidth", result, str)
 }
 
 // RuntimePaths returns a list of paths contained in the runtimepath option.
@@ -314,82 +354,102 @@ func (v *Vim) RuntimePaths() ([]string, error) {
 }
 
 // RuntimePaths returns a list of paths contained in the runtimepath option.
-func (b *Batch) RuntimePaths(result *[]string) {
-	b.call("vim_list_runtime_paths", result)
+func (p *Pipeline) RuntimePaths(result *[]string) {
+	p.call("vim_list_runtime_paths", result)
 }
 
+// ChangeDirectory changes Vim working directory.
 func (v *Vim) ChangeDirectory(dir string) error {
 	return v.call("vim_change_directory", nil, dir)
 }
 
-func (b *Batch) ChangeDirectory(dir string) {
-	b.call("vim_change_directory", nil, dir)
+// ChangeDirectory changes Vim working directory.
+func (p *Pipeline) ChangeDirectory(dir string) {
+	p.call("vim_change_directory", nil, dir)
 }
 
+// CurrentLine gets the current line in the current buffer.
 func (v *Vim) CurrentLine() ([]byte, error) {
 	var result []byte
 	err := v.call("vim_get_current_line", &result)
 	return result, err
 }
 
-func (b *Batch) CurrentLine(result *[]byte) {
-	b.call("vim_get_current_line", result)
+// CurrentLine gets the current line in the current buffer.
+func (p *Pipeline) CurrentLine(result *[]byte) {
+	p.call("vim_get_current_line", result)
 }
 
+// SetCurrentLine sets the current line in the current buffer.
 func (v *Vim) SetCurrentLine(line []byte) error {
 	return v.call("vim_set_current_line", nil, line)
 }
 
-func (b *Batch) SetCurrentLine(line []byte) {
-	b.call("vim_set_current_line", nil, line)
+// SetCurrentLine sets the current line in the current buffer.
+func (p *Pipeline) SetCurrentLine(line []byte) {
+	p.call("vim_set_current_line", nil, line)
 }
 
+// DeleteCurrentLine deletes the current line in the current buffer.
 func (v *Vim) DeleteCurrentLine() error {
 	return v.call("vim_del_current_line", nil)
 }
 
-func (b *Batch) DeleteCurrentLine() {
-	b.call("vim_del_current_line", nil)
+// DeleteCurrentLine deletes the current line in the current buffer.
+func (p *Pipeline) DeleteCurrentLine() {
+	p.call("vim_del_current_line", nil)
 }
 
+// Var gets a global variable.
 func (v *Vim) Var(name string, result interface{}) error {
 	return v.call("vim_get_var", result, name)
 }
 
-func (b *Batch) Var(name string, result interface{}) {
-	b.call("vim_get_var", result, name)
+// Var gets a global variable.
+func (p *Pipeline) Var(name string, result interface{}) {
+	p.call("vim_get_var", result, name)
 }
 
+// SetVar sets a global variable. The value nil deletes the variable. Result is
+// the previous value of the variable.
 func (v *Vim) SetVar(name string, value interface{}, result interface{}) error {
 	return v.call("vim_set_var", result, name, value)
 }
 
-func (b *Batch) SetVar(name string, value interface{}, result interface{}) {
-	b.call("vim_set_var", result, name, value)
+// SetVar sets a global variable. The value nil deletes the variable. Result is
+// the previous value of the variable.
+func (p *Pipeline) SetVar(name string, value interface{}, result interface{}) {
+	p.call("vim_set_var", result, name, value)
 }
 
+// Vvar gets a vim variable.
 func (v *Vim) Vvar(name string, result interface{}) error {
 	return v.call("vim_get_vvar", result, name)
 }
 
-func (b *Batch) Vvar(name string, result interface{}) {
-	b.call("vim_get_vvar", result, name)
+// Vvar gets a vim variable.
+func (p *Pipeline) Vvar(name string, result interface{}) {
+	p.call("vim_get_vvar", result, name)
 }
 
+// Option gets an option.
 func (v *Vim) Option(name string, result interface{}) error {
 	return v.call("vim_get_option", result, name)
 }
 
-func (b *Batch) Option(name string, result interface{}) {
-	b.call("vim_get_option", result, name)
+// Option gets an option.
+func (p *Pipeline) Option(name string, result interface{}) {
+	p.call("vim_get_option", result, name)
 }
 
+// SetOption sets an option.
 func (v *Vim) SetOption(name string, value interface{}) error {
 	return v.call("vim_set_option", nil, name, value)
 }
 
-func (b *Batch) SetOption(name string, value interface{}) {
-	b.call("vim_set_option", nil, name, value)
+// SetOption sets an option.
+func (p *Pipeline) SetOption(name string, value interface{}) {
+	p.call("vim_set_option", nil, name, value)
 }
 
 // WriteOut writes a message to the output buffer.
@@ -398,8 +458,8 @@ func (v *Vim) WriteOut(str string) error {
 }
 
 // WriteOut writes a message to the output buffer.
-func (b *Batch) WriteOut(str string) {
-	b.call("vim_out_write", nil, str)
+func (p *Pipeline) WriteOut(str string) {
+	p.call("vim_out_write", nil, str)
 }
 
 // WriteErr writes a message to the error buffer.
@@ -408,8 +468,8 @@ func (v *Vim) WriteErr(str string) error {
 }
 
 // WriteErr writes a message to the error buffer.
-func (b *Batch) WriteErr(str string) {
-	b.call("vim_err_write", nil, str)
+func (p *Pipeline) WriteErr(str string) {
+	p.call("vim_err_write", nil, str)
 }
 
 // ReportError writes a message and a newline to the error buffer.
@@ -418,8 +478,8 @@ func (v *Vim) ReportError(str string) error {
 }
 
 // ReportError writes a message and a newline to the error buffer.
-func (b *Batch) ReportError(str string) {
-	b.call("vim_report_error", nil, str)
+func (p *Pipeline) ReportError(str string) {
+	p.call("vim_report_error", nil, str)
 }
 
 func (v *Vim) Buffers() ([]Buffer, error) {
@@ -428,8 +488,8 @@ func (v *Vim) Buffers() ([]Buffer, error) {
 	return result, err
 }
 
-func (b *Batch) Buffers(result *[]Buffer) {
-	b.call("vim_get_buffers", result)
+func (p *Pipeline) Buffers(result *[]Buffer) {
+	p.call("vim_get_buffers", result)
 }
 
 func (v *Vim) CurrentBuffer() (Buffer, error) {
@@ -438,16 +498,16 @@ func (v *Vim) CurrentBuffer() (Buffer, error) {
 	return result, err
 }
 
-func (b *Batch) CurrentBuffer(result *Buffer) {
-	b.call("vim_get_current_buffer", result)
+func (p *Pipeline) CurrentBuffer(result *Buffer) {
+	p.call("vim_get_current_buffer", result)
 }
 
 func (v *Vim) SetCurrentBuffer(buffer Buffer) error {
 	return v.call("vim_set_current_buffer", nil, buffer)
 }
 
-func (b *Batch) SetCurrentBuffer(buffer Buffer) {
-	b.call("vim_set_current_buffer", nil, buffer)
+func (p *Pipeline) SetCurrentBuffer(buffer Buffer) {
+	p.call("vim_set_current_buffer", nil, buffer)
 }
 
 func (v *Vim) Windows() ([]Window, error) {
@@ -456,8 +516,8 @@ func (v *Vim) Windows() ([]Window, error) {
 	return result, err
 }
 
-func (b *Batch) Windows(result *[]Window) {
-	b.call("vim_get_windows", result)
+func (p *Pipeline) Windows(result *[]Window) {
+	p.call("vim_get_windows", result)
 }
 
 func (v *Vim) CurrentWindow() (Window, error) {
@@ -466,16 +526,16 @@ func (v *Vim) CurrentWindow() (Window, error) {
 	return result, err
 }
 
-func (b *Batch) CurrentWindow(result *Window) {
-	b.call("vim_get_current_window", result)
+func (p *Pipeline) CurrentWindow(result *Window) {
+	p.call("vim_get_current_window", result)
 }
 
 func (v *Vim) SetCurrentWindow(window Window) error {
 	return v.call("vim_set_current_window", nil, window)
 }
 
-func (b *Batch) SetCurrentWindow(window Window) {
-	b.call("vim_set_current_window", nil, window)
+func (p *Pipeline) SetCurrentWindow(window Window) {
+	p.call("vim_set_current_window", nil, window)
 }
 
 func (v *Vim) Tabpages() ([]Tabpage, error) {
@@ -484,8 +544,8 @@ func (v *Vim) Tabpages() ([]Tabpage, error) {
 	return result, err
 }
 
-func (b *Batch) Tabpages(result *[]Tabpage) {
-	b.call("vim_get_tabpages", result)
+func (p *Pipeline) Tabpages(result *[]Tabpage) {
+	p.call("vim_get_tabpages", result)
 }
 
 func (v *Vim) CurrentTabpage() (Tabpage, error) {
@@ -494,16 +554,16 @@ func (v *Vim) CurrentTabpage() (Tabpage, error) {
 	return result, err
 }
 
-func (b *Batch) CurrentTabpage(result *Tabpage) {
-	b.call("vim_get_current_tabpage", result)
+func (p *Pipeline) CurrentTabpage(result *Tabpage) {
+	p.call("vim_get_current_tabpage", result)
 }
 
 func (v *Vim) SetCurrentTabpage(tabpage Tabpage) error {
 	return v.call("vim_set_current_tabpage", nil, tabpage)
 }
 
-func (b *Batch) SetCurrentTabpage(tabpage Tabpage) {
-	b.call("vim_set_current_tabpage", nil, tabpage)
+func (p *Pipeline) SetCurrentTabpage(tabpage Tabpage) {
+	p.call("vim_set_current_tabpage", nil, tabpage)
 }
 
 // Subscribe subscribes to a Neovim event.
@@ -512,8 +572,8 @@ func (v *Vim) Subscribe(event string) error {
 }
 
 // Subscribe subscribes to a Neovim event.
-func (b *Batch) Subscribe(event string) {
-	b.call("vim_subscribe", nil, event)
+func (p *Pipeline) Subscribe(event string) {
+	p.call("vim_subscribe", nil, event)
 }
 
 // Unsubscribe unsubscribes to a Neovim event.
@@ -522,8 +582,8 @@ func (v *Vim) Unsubscribe(event string) error {
 }
 
 // Unsubscribe unsubscribes to a Neovim event.
-func (b *Batch) Unsubscribe(event string) {
-	b.call("vim_unsubscribe", nil, event)
+func (p *Pipeline) Unsubscribe(event string) {
+	p.call("vim_unsubscribe", nil, event)
 }
 
 func (v *Vim) NameToColor(name string) (int, error) {
@@ -532,8 +592,8 @@ func (v *Vim) NameToColor(name string) (int, error) {
 	return result, err
 }
 
-func (b *Batch) NameToColor(name string, result *int) {
-	b.call("vim_name_to_color", result, name)
+func (p *Pipeline) NameToColor(name string, result *int) {
+	p.call("vim_name_to_color", result, name)
 }
 
 func (v *Vim) ColorMap() (map[string]interface{}, error) {
@@ -542,8 +602,8 @@ func (v *Vim) ColorMap() (map[string]interface{}, error) {
 	return result, err
 }
 
-func (b *Batch) ColorMap(result *map[string]interface{}) {
-	b.call("vim_get_color_map", result)
+func (p *Pipeline) ColorMap(result *map[string]interface{}) {
+	p.call("vim_get_color_map", result)
 }
 
 func (v *Vim) APIInfo() ([]interface{}, error) {
@@ -552,8 +612,8 @@ func (v *Vim) APIInfo() ([]interface{}, error) {
 	return result, err
 }
 
-func (b *Batch) APIInfo(result *[]interface{}) {
-	b.call("vim_get_api_info", result)
+func (p *Pipeline) APIInfo(result *[]interface{}) {
+	p.call("vim_get_api_info", result)
 }
 
 func (v *Vim) WindowBuffer(window Window) (Buffer, error) {
@@ -562,8 +622,8 @@ func (v *Vim) WindowBuffer(window Window) (Buffer, error) {
 	return result, err
 }
 
-func (b *Batch) WindowBuffer(window Window, result *Buffer) {
-	b.call("window_get_buffer", result, window)
+func (p *Pipeline) WindowBuffer(window Window, result *Buffer) {
+	p.call("window_get_buffer", result, window)
 }
 
 func (v *Vim) WindowCursor(window Window) ([2]int, error) {
@@ -572,16 +632,16 @@ func (v *Vim) WindowCursor(window Window) ([2]int, error) {
 	return result, err
 }
 
-func (b *Batch) WindowCursor(window Window, result *[2]int) {
-	b.call("window_get_cursor", result, window)
+func (p *Pipeline) WindowCursor(window Window, result *[2]int) {
+	p.call("window_get_cursor", result, window)
 }
 
 func (v *Vim) SetWindowCursor(window Window, pos [2]int) error {
 	return v.call("window_set_cursor", nil, window, pos)
 }
 
-func (b *Batch) SetWindowCursor(window Window, pos [2]int) {
-	b.call("window_set_cursor", nil, window, pos)
+func (p *Pipeline) SetWindowCursor(window Window, pos [2]int) {
+	p.call("window_set_cursor", nil, window, pos)
 }
 
 func (v *Vim) WindowHeight(window Window) (int, error) {
@@ -590,16 +650,16 @@ func (v *Vim) WindowHeight(window Window) (int, error) {
 	return result, err
 }
 
-func (b *Batch) WindowHeight(window Window, result *int) {
-	b.call("window_get_height", result, window)
+func (p *Pipeline) WindowHeight(window Window, result *int) {
+	p.call("window_get_height", result, window)
 }
 
 func (v *Vim) SetWindowHeight(window Window, height int) error {
 	return v.call("window_set_height", nil, window, height)
 }
 
-func (b *Batch) SetWindowHeight(window Window, height int) {
-	b.call("window_set_height", nil, window, height)
+func (p *Pipeline) SetWindowHeight(window Window, height int) {
+	p.call("window_set_height", nil, window, height)
 }
 
 func (v *Vim) WindowWidth(window Window) (int, error) {
@@ -608,48 +668,48 @@ func (v *Vim) WindowWidth(window Window) (int, error) {
 	return result, err
 }
 
-func (b *Batch) WindowWidth(window Window, result *int) {
-	b.call("window_get_width", result, window)
+func (p *Pipeline) WindowWidth(window Window, result *int) {
+	p.call("window_get_width", result, window)
 }
 
 func (v *Vim) SetWindowWidth(window Window, width int) error {
 	return v.call("window_set_width", nil, window, width)
 }
 
-func (b *Batch) SetWindowWidth(window Window, width int) {
-	b.call("window_set_width", nil, window, width)
+func (p *Pipeline) SetWindowWidth(window Window, width int) {
+	p.call("window_set_width", nil, window, width)
 }
 
 func (v *Vim) WindowVar(window Window, name string, result interface{}) error {
 	return v.call("window_get_var", result, window, name)
 }
 
-func (b *Batch) WindowVar(window Window, name string, result interface{}) {
-	b.call("window_get_var", result, window, name)
+func (p *Pipeline) WindowVar(window Window, name string, result interface{}) {
+	p.call("window_get_var", result, window, name)
 }
 
 func (v *Vim) SetWindowVar(window Window, name string, value interface{}, result interface{}) error {
 	return v.call("window_set_var", result, window, name, value)
 }
 
-func (b *Batch) SetWindowVar(window Window, name string, value interface{}, result interface{}) {
-	b.call("window_set_var", result, window, name, value)
+func (p *Pipeline) SetWindowVar(window Window, name string, value interface{}, result interface{}) {
+	p.call("window_set_var", result, window, name, value)
 }
 
 func (v *Vim) WindowOption(window Window, name string, result interface{}) error {
 	return v.call("window_get_option", result, window, name)
 }
 
-func (b *Batch) WindowOption(window Window, name string, result interface{}) {
-	b.call("window_get_option", result, window, name)
+func (p *Pipeline) WindowOption(window Window, name string, result interface{}) {
+	p.call("window_get_option", result, window, name)
 }
 
 func (v *Vim) SetWindowOption(window Window, name string, value interface{}) error {
 	return v.call("window_set_option", nil, window, name, value)
 }
 
-func (b *Batch) SetWindowOption(window Window, name string, value interface{}) {
-	b.call("window_set_option", nil, window, name, value)
+func (p *Pipeline) SetWindowOption(window Window, name string, value interface{}) {
+	p.call("window_set_option", nil, window, name, value)
 }
 
 func (v *Vim) WindowPosition(window Window) ([2]int, error) {
@@ -658,8 +718,8 @@ func (v *Vim) WindowPosition(window Window) ([2]int, error) {
 	return result, err
 }
 
-func (b *Batch) WindowPosition(window Window, result *[2]int) {
-	b.call("window_get_position", result, window)
+func (p *Pipeline) WindowPosition(window Window, result *[2]int) {
+	p.call("window_get_position", result, window)
 }
 
 func (v *Vim) WindowTabpage(window Window) (Tabpage, error) {
@@ -668,8 +728,8 @@ func (v *Vim) WindowTabpage(window Window) (Tabpage, error) {
 	return result, err
 }
 
-func (b *Batch) WindowTabpage(window Window, result *Tabpage) {
-	b.call("window_get_tabpage", result, window)
+func (p *Pipeline) WindowTabpage(window Window, result *Tabpage) {
+	p.call("window_get_tabpage", result, window)
 }
 
 func (v *Vim) IsWindowValid(window Window) (bool, error) {
@@ -678,6 +738,6 @@ func (v *Vim) IsWindowValid(window Window) (bool, error) {
 	return result, err
 }
 
-func (b *Batch) IsWindowValid(window Window, result *bool) {
-	b.call("window_is_valid", result, window)
+func (p *Pipeline) IsWindowValid(window Window, result *bool) {
+	p.call("window_is_valid", result, window)
 }

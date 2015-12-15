@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package msgpack implements MsgPack encoding and decoding.
+// Package msgpack implements MessagePack encoding and decoding.
 package msgpack
 
 import (
@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-// Codes from the MsgPack specification.
+// Codes from the MessagePack specification.
 const (
 	fixIntCodeMin    = 0x00
 	fixIntCodeMax    = 0x7f

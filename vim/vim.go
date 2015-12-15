@@ -74,13 +74,13 @@ func (v *Vim) call(sm string, result interface{}, args ...interface{}) error {
 	return fixError(sm, v.ep.Call(sm, result, args...))
 }
 
-func (v *Vim) NewBatch() *Batch {
-	return &Batch{ep: v.ep}
+func (v *Vim) NewPipeline() *Pipeline {
+	return &Pipeline{ep: v.ep}
 }
 
-// Batch pipelines calls to Neovim. Call the Wait method to wait for the calls
+// Pipeline pipelines calls to Neovim. Call the Wait method to wait for the calls
 // to complete.
-type Batch struct {
+type Pipeline struct {
 	n     int
 	ep    *rpc.Endpoint
 	done  chan *rpc.Call
@@ -89,18 +89,18 @@ type Batch struct {
 
 const doneChunkSize = 32
 
-func (b *Batch) call(sm string, result interface{}, args ...interface{}) {
-	if b.n%doneChunkSize == 0 {
+func (p *Pipeline) call(sm string, result interface{}, args ...interface{}) {
+	if p.n%doneChunkSize == 0 {
 		done := make(chan *rpc.Call, doneChunkSize)
-		b.done = done
-		b.chans = append(b.chans, done)
+		p.done = done
+		p.chans = append(p.chans, done)
 	}
-	b.n++
-	b.ep.Go(sm, b.done, result, args...)
+	p.n++
+	p.ep.Go(sm, p.done, result, args...)
 }
 
 // Wait waits for all calls in the batch to complete.
-func (p *Batch) Wait() error {
+func (p *Pipeline) Wait() error {
 	var el ErrorList
 	var done chan *rpc.Call
 	for i := 0; i < p.n; i++ {
@@ -142,12 +142,18 @@ func (el ErrorList) Error() string {
 
 // Call calls a vimscript function.
 func (v *Vim) Call(fname string, result interface{}, args ...interface{}) error {
+	if args == nil {
+		args = []interface{}{}
+	}
 	return v.call("vim_call_function", result, fname, args)
 }
 
 // Call calls a vimscript function.
-func (b *Batch) Call(fname string, result interface{}, args ...interface{}) {
-	b.call("vim_call_function", result, fname, args)
+func (p *Pipeline) Call(fname string, result interface{}, args ...interface{}) {
+	if args == nil {
+		args = []interface{}{}
+	}
+	p.call("vim_call_function", result, fname, args)
 }
 
 const (

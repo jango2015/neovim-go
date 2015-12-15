@@ -33,90 +33,112 @@ var methods = []*struct {
 		Sm:     "buffer_line_count",
 		Return: "int",
 		Params: []param{{"buffer", "Buffer"}},
+		Doc:    `// BufferLineCount returns the number of lines in the buffer.`,
 	},
 	{
 		Name:   "BufferLine",
 		Sm:     "buffer_get_line",
 		Return: "[]byte",
 		Params: []param{{"buffer", "Buffer"}, {"index", "int"}},
+		Doc:    `// BufferLine returns the line at the given index.`,
 	},
 	{
 		Name:   "SetBufferLine",
 		Sm:     "buffer_set_line",
 		Params: []param{{"buffer", "Buffer"}, {"index", "int"}, {"line", "[]byte"}},
+		Doc:    `// SetBufferLine sets the line at the given index.`,
 	},
 	{
 		Name:   "DeleteBufferLine",
 		Sm:     "buffer_del_line",
 		Params: []param{{"buffer", "Buffer"}, {"index", "int"}},
+		Doc:    `// DeleteBufferLine deletes the line at the given index.`,
 	},
 	{
 		Name:   "BufferLineSlice",
 		Sm:     "buffer_get_line_slice",
 		Return: "[][]byte",
 		Params: []param{{"buffer", "Buffer"}, {"start", "int"}, {"end", "int"}, {"includeStart", "bool"}, {"includeEnd", "bool"}},
+		Doc:    `// BufferLineSlice retrieves a line range from a buffer.`,
 	},
 	{
 		Name:   "SetBufferLineSlice",
 		Sm:     "buffer_set_line_slice",
 		Params: []param{{"buffer", "Buffer"}, {"start", "int"}, {"end", "int"}, {"includeStart", "bool"}, {"includeEnd", "bool"}, {"replacement", "[][]byte"}},
+		Doc:    `// SetBufferLineSlice replaces a line range on a buffer.`,
 	},
 	{
 		Name:   "BufferVar",
 		Sm:     "buffer_get_var",
 		Return: "interface{}",
 		Params: []param{{"buffer", "Buffer"}, {"name", "string"}},
+		Doc:    `// BufferVar gets a buffer-scoped (b:) variable.`,
 	},
 	{
 		Name:   "SetBufferVar",
 		Sm:     "buffer_set_var",
 		Return: "interface{}",
 		Params: []param{{"buffer", "Buffer"}, {"name", "string"}, {"value", "interface{}"}},
+		Doc: `
+// SetBufferVar sets a buffer-scoped (b:) variable. The value nil deletes the
+// variable. Result is the previous value of the variable.
+`,
 	},
 	{
 		Name:   "BufferOption",
 		Sm:     "buffer_get_option",
 		Return: "interface{}",
 		Params: []param{{"buffer", "Buffer"}, {"name", "string"}},
+		Doc:    `// BufferOption gets a buffer option value.`,
 	},
 	{
 		Name:   "SetBufferOption",
 		Sm:     "buffer_set_option",
 		Params: []param{{"buffer", "Buffer"}, {"name", "string"}, {"value", "interface{}"}},
+		Doc: `
+// SetBufferOption sets a buffer option value. The value nil deletes the option
+// in the case where there's a global fallback.
+`,
 	},
 	{
 		Name:   "BufferNumber",
 		Sm:     "buffer_get_number",
 		Return: "int",
 		Params: []param{{"buffer", "Buffer"}},
+		Doc:    `// BufferNumber gets a buffer's number.`,
 	},
 	{
 		Name:   "BufferName",
 		Sm:     "buffer_get_name",
 		Return: "string",
 		Params: []param{{"buffer", "Buffer"}},
+		Doc:    `// BufferName gets the full file name of a buffer.`,
 	},
 	{
 		Name:   "SetBufferName",
 		Sm:     "buffer_set_name",
 		Params: []param{{"buffer", "Buffer"}, {"name", "string"}},
+		Doc:    `// SetBufferName sets the full file name of a buffer.`,
 	},
 	{
 		Name:   "IsBufferValid",
 		Sm:     "buffer_is_valid",
 		Return: "bool",
 		Params: []param{{"buffer", "Buffer"}},
+		Doc:    `// IsBufferValid returns true if the buffer is valid.`,
 	},
 	{
 		Name:   "InsertBuffer",
 		Sm:     "buffer_insert",
 		Params: []param{{"buffer", "Buffer"}, {"lnum", "int"}, {"lines", "[][]byte"}},
+		Doc:    `// InsertBUffer inserts a range of lines to a buffer at the specified index.`,
 	},
 	{
 		Name:   "BufferMark",
 		Sm:     "buffer_get_mark",
 		Return: "[2]int",
 		Params: []param{{"buffer", "Buffer"}, {"name", "string"}},
+		Doc:    `// BufferMark returns the (row,col) of the named mark.`,
 	},
 	{
 		Name:   "TabpageWindows",
@@ -215,7 +237,9 @@ var methods = []*struct {
 		Return: "interface{}",
 		Params: []param{{"str", "string"}},
 		Doc: `
-// Eval evaluates a vimscript expression.
+// Eval evaluates the expression str using the Vim internal expression
+// evaluator (see |expression|). Dictionaries and lists are recursively
+// expanded. Eval evaluates a vimscript expression.
 `,
 	},
 	{
@@ -224,8 +248,8 @@ var methods = []*struct {
 		Return: "int",
 		Params: []param{{"str", "string"}},
 		Doc: `
-// Strwidth returns the number of display cells string occupies. Tab is counted
-// as one cell.
+// Strwidth returns the number of display cells the string occupies. Tab is
+// counted as one cell.
 `,
 	},
 	{
@@ -240,73 +264,79 @@ var methods = []*struct {
 		Name:   "ChangeDirectory",
 		Sm:     "vim_change_directory",
 		Params: []param{{"dir", "string"}},
+		Doc:    `// ChangeDirectory changes Vim working directory.`,
 	},
 	{
 		Name:   "CurrentLine",
 		Sm:     "vim_get_current_line",
 		Return: "[]byte",
+		Doc:    `// CurrentLine gets the current line in the current buffer.`,
 	},
 	{
 		Name:   "SetCurrentLine",
 		Sm:     "vim_set_current_line",
 		Params: []param{{"line", "[]byte"}},
+		Doc:    `// SetCurrentLine sets the current line in the current buffer.`,
 	},
 	{
 		Name: "DeleteCurrentLine",
 		Sm:   "vim_del_current_line",
+		Doc:  `// DeleteCurrentLine deletes the current line in the current buffer.`,
 	},
 	{
 		Name:   "Var",
 		Sm:     "vim_get_var",
 		Return: "interface{}",
 		Params: []param{{"name", "string"}},
+		Doc:    `// Var gets a global variable.`,
 	},
 	{
 		Name:   "SetVar",
 		Sm:     "vim_set_var",
 		Return: "interface{}",
 		Params: []param{{"name", "string"}, {"value", "interface{}"}},
+		Doc: `
+// SetVar sets a global variable. The value nil deletes the variable. Result is
+// the previous value of the variable.
+`,
 	},
 	{
 		Name:   "Vvar",
 		Sm:     "vim_get_vvar",
 		Return: "interface{}",
 		Params: []param{{"name", "string"}},
+		Doc:    `// Vvar gets a vim variable.`,
 	},
 	{
 		Name:   "Option",
 		Sm:     "vim_get_option",
 		Return: "interface{}",
 		Params: []param{{"name", "string"}},
+		Doc:    `// Option gets an option.`,
 	},
 	{
 		Name:   "SetOption",
 		Sm:     "vim_set_option",
 		Params: []param{{"name", "string"}, {"value", "interface{}"}},
+		Doc:    `// SetOption sets an option.`,
 	},
 	{
 		Name:   "WriteOut",
 		Sm:     "vim_out_write",
 		Params: []param{{"str", "string"}},
-		Doc: `
-// WriteOut writes a message to the output buffer.
-`,
+		Doc: `// WriteOut writes a message to the output buffer.`,
 	},
 	{
 		Name:   "WriteErr",
 		Sm:     "vim_err_write",
 		Params: []param{{"str", "string"}},
-		Doc: `
-// WriteErr writes a message to the error buffer.
-`,
+		Doc: `// WriteErr writes a message to the error buffer.`,
 	},
 	{
 		Name:   "ReportError",
 		Sm:     "vim_report_error",
 		Params: []param{{"str", "string"}},
-		Doc: `
-// ReportError writes a message and a newline to the error buffer.
-`,
+		Doc: `// ReportError writes a message and a newline to the error buffer.`,
 	},
 	{
 		Name:   "Buffers",
@@ -475,8 +505,8 @@ func (v *Vim) {{.Name}}({{range .Params}}{{.Name}} {{.Type}},{{end}} result inte
 }
 
 {{.Doc}}
-func (b *Batch) {{.Name}}({{range .Params}}{{.Name}} {{.Type}},{{end}} result interface{}) {
-    b.call("{{.Sm}}", result, {{range .Params}}{{.Name}},{{end}})
+func (p *Pipeline) {{.Name}}({{range .Params}}{{.Name}} {{.Type}},{{end}} result interface{}) {
+    p.call("{{.Sm}}", result, {{range .Params}}{{.Name}},{{end}})
 }
 {{else if .Return}}
 {{.Doc}}
@@ -486,8 +516,8 @@ func (v *Vim) {{.Name}}({{range .Params}}{{.Name}} {{.Type}},{{end}}) ({{.Return
     return result, err
 }
 {{.Doc}}
-func (b *Batch) {{.Name}}({{range .Params}}{{.Name}} {{.Type}},{{end}} result *{{.Return}}) {
-    b.call("{{.Sm}}", result, {{range .Params}}{{.Name}},{{end}})
+func (p *Pipeline) {{.Name}}({{range .Params}}{{.Name}} {{.Type}},{{end}} result *{{.Return}}) {
+    p.call("{{.Sm}}", result, {{range .Params}}{{.Name}},{{end}})
 }
 {{else}}
 {{.Doc}}
@@ -495,8 +525,8 @@ func (v *Vim) {{.Name}}({{range .Params}}{{.Name}} {{.Type}},{{end}}) error {
     return v.call("{{.Sm}}", nil, {{range .Params}}{{.Name}},{{end}})
 }
 {{.Doc}}
-func (b *Batch) {{.Name}}({{range .Params}}{{.Name}} {{.Type}},{{end}}) {
-    b.call("{{.Sm}}", nil, {{range .Params}}{{.Name}},{{end}})
+func (p *Pipeline) {{.Name}}({{range .Params}}{{.Name}} {{.Type}},{{end}}) {
+    p.call("{{.Sm}}", nil, {{range .Params}}{{.Name}},{{end}})
 }
 {{end}}
 {{end}}

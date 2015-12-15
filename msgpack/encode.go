@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-// Encode writes the MsgPack encoding of v to the stream.
+// Encode writes the MessagePack encoding of v to the stream.
 func (e *Encoder) Encode(v interface{}) (err error) {
 	if v == nil {
 		return e.PackNil()
@@ -220,7 +220,7 @@ func (b *encodeBuilder) sliceEncoder(t reflect.Type) encodeFunc {
 }
 
 // Marshaler is the interface implemented by objects that can encode themselves
-// to a MsgPack stream.
+// to a MessagePack stream.
 type Marshaler interface {
 	MarshalMsgPack(e *Encoder) error
 }
