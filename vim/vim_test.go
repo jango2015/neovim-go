@@ -6,14 +6,20 @@ package vim_test
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"testing"
 
+	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/vimtest"
 )
 
+func helloHandler(v *vim.Vim, s string) (string, error) {
+	return "Hello, " + s, nil
+}
+
 func TestAPI(t *testing.T) {
-	v, cleanup := vimtest.New(t)
+	v, cleanup := vimtest.New(t, false)
 	defer cleanup()
 
 	cid, err := v.ChannelID()
@@ -170,6 +176,17 @@ func TestAPI(t *testing.T) {
 			if results[i] != i {
 				t.Fatalf("result = %d, want %d", results[i], i)
 			}
+		}
+
+		// Reuse pipeline
+
+		var i int
+		p.Var("v3", &i)
+		if err := p.Wait(); err != nil {
+			log.Fatal(err)
+		}
+		if i != 3 {
+			t.Fatalf("i = %d, want %d", i, 3)
 		}
 	}
 

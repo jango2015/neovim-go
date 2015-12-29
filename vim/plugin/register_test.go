@@ -2,34 +2,24 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package vim_test
+package plugin_test
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/garyburd/neovim-go/vim"
+	"github.com/garyburd/neovim-go/vim/plugin"
 	"github.com/garyburd/neovim-go/vim/vimtest"
 )
 
-func helloHandler(v *vim.Vim, s string) (string, error) {
-	return "Hello, " + s, nil
-}
-
-func helloFunc(v *vim.Vim, args []string) (string, error) {
-	return "Hello, " + strings.Join(args, " "), nil
+func init() {
+	plugin.Handle("hello", func(v *vim.Vim, s string) (string, error) {
+		return "Hello, " + s, nil
+	})
 }
 
 func TestRegister(t *testing.T) {
-	v, cleanup := vimtest.New(t, func(v *vim.Vim) error {
-		if err := v.RegisterFunction("Hello", nil, helloFunc); err != nil {
-			return err
-		}
-		if err := v.RegisterHandler("hello", helloHandler); err != nil {
-			return err
-		}
-		return nil
-	})
+	v, cleanup := vimtest.New(t, true)
 	defer cleanup()
 
 	cid, err := v.ChannelID()

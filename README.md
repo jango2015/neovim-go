@@ -1,6 +1,6 @@
 ### neovim-go
 
-[![GoDoc](https://godoc.org/github.com/garyburd/neovim-go/vim?status.svg)](https://godoc.org/github.com/garyburd/neovim-go/vim)
+[![GoDoc](https://godoc.org/github.com/garyburd/neovim-go?status.svg)](https://godoc.org/github.com/garyburd/neovim-go)
 
 Neovim-go is a [Neovim](https://neovim.io/) plugin host for Go.
 

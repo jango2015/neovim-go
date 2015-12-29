@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package vim is a Neovim remote plugin peer.
+// Package vim implements a Neovim client.
 package vim
 
 import (
@@ -19,13 +19,9 @@ import (
 
 // Vim represents a remote instance of Neovim.
 type Vim struct {
-	ep *rpc.Endpoint
-
+	ep        *rpc.Endpoint
 	mu        sync.Mutex
 	channelID int
-
-	PluginPath  string // TODO: find way to remove this.
-	pluginSpecs []*pluginSpec
 }
 
 func (v *Vim) Serve() error {
@@ -36,9 +32,18 @@ func (v *Vim) Close() error {
 	return v.ep.Close()
 }
 
-// New creates a new peer.
-func New(rwc io.ReadWriteCloser, logf func(string, ...interface{})) (*Vim, error) {
-	v := &Vim{pluginSpecs: []*pluginSpec{}}
+// New create a Neovim client. When connecting to Neovim over stdio, use stdin
+// as r and stdout as wc. When connecting to Neovim over a network connection,
+// use the connection for both r and wc.
+//
+//  :help msgpack-rpc-connecting
+func New(r io.Reader, wc io.WriteCloser, logf func(string, ...interface{})) (*Vim, error) {
+	v := &Vim{}
+
+	rwc := struct {
+		io.Reader
+		io.WriteCloser
+	}{r, wc}
 
 	var err error
 	v.ep, err = rpc.NewEndpoint(rwc, withExtensions(), rpc.WithLogf(logf), rpc.WithFirstArg(v))
@@ -46,13 +51,14 @@ func New(rwc io.ReadWriteCloser, logf func(string, ...interface{})) (*Vim, error
 		return nil, err
 	}
 
-	if err := v.ep.RegisterHandler("specs", (*Vim).handleSpecs); err != nil {
-		return nil, err
-	}
-
 	return v, nil
 }
 
+func (v *Vim) RegisterHandler(serviceMethod string, function interface{}) error {
+	return v.ep.RegisterHandler(serviceMethod, function)
+}
+
+// ChannelID returns the peer's channel id in Neovim.
 func (v *Vim) ChannelID() (int, error) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
@@ -74,15 +80,18 @@ func (v *Vim) call(sm string, result interface{}, args ...interface{}) error {
 	return fixError(sm, v.ep.Call(sm, result, args...))
 }
 
+// NewPipeline creates a new pipeline.
 func (v *Vim) NewPipeline() *Pipeline {
 	return &Pipeline{ep: v.ep}
 }
 
 // Pipeline pipelines calls to Neovim. Call the Wait method to wait for the calls
 // to complete.
+//
+// Pipelines do not support concurrent access.
 type Pipeline struct {
-	n     int
 	ep    *rpc.Endpoint
+	n     int
 	done  chan *rpc.Call
 	chans []chan *rpc.Call
 }
@@ -99,7 +108,7 @@ func (p *Pipeline) call(sm string, result interface{}, args ...interface{}) {
 	p.ep.Go(sm, p.done, result, args...)
 }
 
-// Wait waits for all calls in the batch to complete.
+// Wait waits for all calls in the pipeline to complete.
 func (p *Pipeline) Wait() error {
 	var el ErrorList
 	var done chan *rpc.Call
@@ -113,6 +122,8 @@ func (p *Pipeline) Wait() error {
 			el = append(el, fixError(c.ServiceMethod, c.Err))
 		}
 	}
+	p.n = 0
+	p.done = nil
 	p.chans = nil
 	if len(el) == 0 {
 		return nil

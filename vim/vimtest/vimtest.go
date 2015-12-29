@@ -6,13 +6,13 @@ package vimtest
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"testing"
 	"time"
 
 	"github.com/garyburd/neovim-go/vim"
+	"github.com/garyburd/neovim-go/vim/plugin"
 )
 
 func newEmbeddedVim(args []string, logf func(string, ...interface{})) (*vim.Vim, *os.Process, error) {
@@ -35,13 +35,7 @@ func newEmbeddedVim(args []string, logf func(string, ...interface{})) (*vim.Vim,
 	}
 	defer inr.Close()
 
-	v, err := vim.New(struct {
-		io.Reader
-		io.WriteCloser
-	}{
-		outr,
-		inw,
-	}, logf)
+	v, err := vim.New(outr, inw, logf)
 	if err != nil {
 		outr.Close()
 		inw.Close()
@@ -58,7 +52,7 @@ func newEmbeddedVim(args []string, logf func(string, ...interface{})) (*vim.Vim,
 	return v, p, nil
 }
 
-func New(t *testing.T, setupFuncs ...func(*vim.Vim) error) (v *vim.Vim, cleanup func()) {
+func New(t *testing.T, registerHandlers bool) (v *vim.Vim, cleanup func()) {
 	v, p, err := newEmbeddedVim(
 		[]string{"nvim", "--embed", "-u", "NONE", "-n"},
 		t.Logf,
@@ -67,12 +61,8 @@ func New(t *testing.T, setupFuncs ...func(*vim.Vim) error) (v *vim.Vim, cleanup 
 		t.Fatal(err)
 	}
 
-	v.PluginPath = "x"
-
-	for _, f := range setupFuncs {
-		if err := f(v); err != nil {
-			t.Fatal(err)
-		}
+	if err := plugin.RegisterHandlers(v, "x"); err != nil {
+		t.Fatal(err)
 	}
 
 	done := make(chan struct{})
@@ -84,7 +74,7 @@ func New(t *testing.T, setupFuncs ...func(*vim.Vim) error) (v *vim.Vim, cleanup 
 
 	}()
 
-	if len(setupFuncs) > 0 {
+	if registerHandlers {
 		cid, err := v.ChannelID()
 		if err != nil {
 			t.Fatal(err)

@@ -324,19 +324,19 @@ var methods = []*struct {
 		Name:   "WriteOut",
 		Sm:     "vim_out_write",
 		Params: []param{{"str", "string"}},
-		Doc: `// WriteOut writes a message to the output buffer.`,
+		Doc:    `// WriteOut writes a message to the output buffer.`,
 	},
 	{
 		Name:   "WriteErr",
 		Sm:     "vim_err_write",
 		Params: []param{{"str", "string"}},
-		Doc: `// WriteErr writes a message to the error buffer.`,
+		Doc:    `// WriteErr writes a message to the error buffer.`,
 	},
 	{
 		Name:   "ReportError",
 		Sm:     "vim_report_error",
 		Params: []param{{"str", "string"}},
-		Doc: `// ReportError writes a message and a newline to the error buffer.`,
+		Doc:    `// ReportError writes a message and a newline to the error buffer.`,
 	},
 	{
 		Name:   "Buffers",
