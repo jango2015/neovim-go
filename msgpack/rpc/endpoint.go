@@ -67,20 +67,18 @@ type Endpoint struct {
 	pending map[uint64]*Call
 	closer  io.Closer
 
-	handlersMu           sync.RWMutex
-	requestHandlers      map[string]reflect.Value
-	notificationHandlers map[string]reflect.Value
+	handlersMu sync.RWMutex
+	handlers   map[string]reflect.Value
 }
 
 func NewEndpoint(conn io.ReadWriteCloser, options ...Option) (*Endpoint, error) {
 	e := &Endpoint{
-		closer:               conn,
-		enc:                  msgpack.NewEncoder(conn),
-		dec:                  msgpack.NewDecoder(conn),
-		pending:              make(map[uint64]*Call),
-		notificationHandlers: make(map[string]reflect.Value),
-		requestHandlers:      make(map[string]reflect.Value),
-		logf:                 func(fmt string, args ...interface{}) {},
+		closer:   conn,
+		enc:      msgpack.NewEncoder(conn),
+		dec:      msgpack.NewDecoder(conn),
+		pending:  make(map[uint64]*Call),
+		handlers: make(map[string]reflect.Value),
+		logf:     func(fmt string, args ...interface{}) {},
 	}
 	for _, option := range options {
 		option.f(e)
@@ -228,16 +226,11 @@ func (e *Endpoint) RegisterHandler(serviceMethod string, function interface{}) e
 		return fmt.Errorf("msgpack/rpc: first handler arg must be type %s", e.arg.Type())
 	}
 
-	var m map[string]reflect.Value
-	if t.NumOut() == 0 {
-		m = e.notificationHandlers
-	} else if t.NumOut() <= 2 && t.Out(t.NumOut()-1) == errorType {
-		m = e.requestHandlers
-	} else {
-		return errors.New("msgpack/rpc: handler return must be (valueType, error) or none")
+	if t.NumOut() > 2 || (t.NumOut() > 1 && t.Out(t.NumOut()-1) != errorType) {
+		return errors.New("msgpack/rpc: handler return must be (), (error) or (valueType, error)")
 	}
 	e.handlersMu.Lock()
-	m[serviceMethod] = v
+	e.handlers[serviceMethod] = v
 	e.handlersMu.Unlock()
 	return nil
 }
@@ -464,7 +457,7 @@ func (e *Endpoint) handleRequest(messageLen int) error {
 	}
 
 	e.handlersMu.RLock()
-	f, ok := e.requestHandlers[serviceMethod]
+	f, ok := e.handlers[serviceMethod]
 	e.handlersMu.RUnlock()
 
 	if !ok {
@@ -487,9 +480,10 @@ func (e *Endpoint) handleRequest(messageLen int) error {
 		out := call(args)
 		var replyErr error
 		var replyVal interface{}
-		if f.Type().NumOut() == 1 {
+		switch f.Type().NumOut() {
+		case 1:
 			replyErr, _ = out[0].Interface().(error)
-		} else {
+		case 2:
 			replyVal = out[0].Interface()
 			replyErr, _ = out[1].Interface().(error)
 		}
@@ -512,7 +506,7 @@ func (e *Endpoint) handleNotification(messageLen int) error {
 	}
 
 	e.handlersMu.RLock()
-	f, ok := e.notificationHandlers[serviceMethod]
+	f, ok := e.handlers[serviceMethod]
 	e.handlersMu.RUnlock()
 
 	if !ok {
@@ -526,7 +520,13 @@ func (e *Endpoint) handleNotification(messageLen int) error {
 	}
 
 	go func() {
-		call(args)
+		out := call(args)
+		if len(out) > 0 {
+			replyErr, _ := out[len(out)-1].Interface().(error)
+			if replyErr != nil {
+				e.logf("msgpack/rpc: service method %s returned %v", serviceMethod, replyErr)
+			}
+		}
 	}()
 
 	return nil

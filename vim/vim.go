@@ -3,31 +3,35 @@
 // license that can be found in the LICENSE file.
 
 // Package vim implements a Neovim client.
+//
+// See the ./plugin package for additional functionality required for writing
+// Neovim plugins.
 package vim
 
 import (
 	"fmt"
 	"io"
-	"reflect"
 	"sync"
 
-	"github.com/garyburd/neovim-go/msgpack"
 	"github.com/garyburd/neovim-go/msgpack/rpc"
 )
 
 //go:generate go run genapi.go -out api.go
 
-// Vim represents a remote instance of Neovim.
+// Vim represents a remote instance of Neovim. It is safe to call *Vim methods
+// concurrently.
 type Vim struct {
 	ep        *rpc.Endpoint
 	mu        sync.Mutex
 	channelID int
 }
 
+// Serve runs the MessagePack RPC server loop.
 func (v *Vim) Serve() error {
 	return v.ep.Serve()
 }
 
+// Close closes the client.
 func (v *Vim) Close() error {
 	return v.ep.Close()
 }
@@ -54,11 +58,27 @@ func New(r io.Reader, wc io.WriteCloser, logf func(string, ...interface{})) (*Vi
 	return v, nil
 }
 
-func (v *Vim) RegisterHandler(serviceMethod string, function interface{}) error {
-	return v.ep.RegisterHandler(serviceMethod, function)
+// RegisterHandler registers fn as a MessagePack RPC handler for the named
+// method. The function signature for fn is one of
+//
+//  func(v *vim.Vim, {args}) ({resultType}, error)
+//  func(v *vim.Vim, {args}) error
+//  func(v *vim.Vim, {args})
+//
+// where {args} is zero or more arguments and {resultType} is the type of of a
+// return value. Call the handler from Neovim using the rpcnotify and
+// rpcrequest functions:
+//
+//  :help rpcrequest()
+//  :help rpcnotify()
+//
+// Plugin applications should use the Handler* methods in the ./plugin package
+// to register handlers instead of this method.
+func (v *Vim) RegisterHandler(method string, fn interface{}) error {
+	return v.ep.RegisterHandler(method, fn)
 }
 
-// ChannelID returns the peer's channel id in Neovim.
+// ChannelID returns Neovim's channel id for this client.
 func (v *Vim) ChannelID() (int, error) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
@@ -85,10 +105,11 @@ func (v *Vim) NewPipeline() *Pipeline {
 	return &Pipeline{ep: v.ep}
 }
 
-// Pipeline pipelines calls to Neovim. Call the Wait method to wait for the calls
-// to complete.
+// Pipeline pipelines calls to Neovim. The underlying calls to Neovim execute
+// and update result arguments asynchronous to the coller. Call the Wait method
+// to wait for the calls to complete.
 //
-// Pipelines do not support concurrent access.
+// Pipelines do not support concurrent calls by the application.
 type Pipeline struct {
 	ep    *rpc.Endpoint
 	n     int
@@ -108,10 +129,12 @@ func (p *Pipeline) call(sm string, result interface{}, args ...interface{}) {
 	p.ep.Go(sm, p.done, result, args...)
 }
 
-// Wait waits for all calls in the pipeline to complete.
+// Wait waits for all calls in the pipeline to complete. If there is more than
+// one call in the pipeline, then Wait returns errors using type ErrorList.
 func (p *Pipeline) Wait() error {
 	var el ErrorList
 	var done chan *rpc.Call
+	useList := p.n > 1
 	for i := 0; i < p.n; i++ {
 		if i%doneChunkSize == 0 {
 			done = p.chans[0]
@@ -125,10 +148,14 @@ func (p *Pipeline) Wait() error {
 	p.n = 0
 	p.done = nil
 	p.chans = nil
-	if len(el) == 0 {
+	switch {
+	case len(el) == 0:
 		return nil
+	case useList:
+		return el
+	default:
+		return el[0]
 	}
-	return el
 }
 
 func fixError(sm string, err error) error {
@@ -145,6 +172,7 @@ func fixError(sm string, err error) error {
 	return err
 }
 
+// ErrorList is a list of errors.
 type ErrorList []error
 
 func (el ErrorList) Error() string {
@@ -167,33 +195,7 @@ func (p *Pipeline) Call(fname string, result interface{}, args ...interface{}) {
 	p.call("vim_call_function", result, fname, args)
 }
 
-const (
-	bufferExt  = 0
-	windowExt  = 1
-	tabpageExt = 2
-
-	exceptionError  = 0
-	validationError = 1
-)
-
-func withExtensions() rpc.Option {
-	return rpc.WithExtensions(msgpack.ExtensionMap{
-		bufferExt: func(p []byte) (interface{}, error) {
-			x, err := decodeExt(p)
-			return Buffer(x), err
-		},
-		windowExt: func(p []byte) (interface{}, error) {
-			x, err := decodeExt(p)
-			return Window(x), err
-		},
-		tabpageExt: func(p []byte) (interface{}, error) {
-			x, err := decodeExt(p)
-			return Tabpage(x), err
-		},
-	})
-}
-
-// decodeInt decodes a MsgPack encoded number to an integer.
+// decodeExt decodes a MsgPack encoded number to an integer.
 func decodeExt(p []byte) (int, error) {
 	switch {
 	case len(p) == 1 && p[0] <= 0x7f:
@@ -217,79 +219,7 @@ func decodeExt(p []byte) (int, error) {
 	}
 }
 
-// encodeInt encodes n to MsgPack format.
+// encodeExt encodes n to MsgPack format.
 func encodeExt(n int) []byte {
 	return []byte{0xd2, byte(n >> 24), byte(n >> 16), byte(n >> 8), byte(n)}
-}
-
-type Buffer int
-
-func (x *Buffer) UnmarshalMsgPack(dec *msgpack.Decoder) error {
-	if dec.Type() != msgpack.Extension || dec.Extension() != bufferExt {
-		err := &msgpack.DecodeConvertError{
-			SrcType:  dec.Type(),
-			DestType: reflect.TypeOf(x),
-		}
-		dec.Skip()
-		return err
-	}
-	n, err := decodeExt(dec.BytesNoCopy())
-	*x = Buffer(n)
-	return err
-}
-
-func (x Buffer) MarshalMsgPack(enc *msgpack.Encoder) error {
-	return enc.PackExtension(bufferExt, encodeExt(int(x)))
-}
-
-func (x Buffer) String() string {
-	return fmt.Sprintf("Buffer:%d", int(x))
-}
-
-type Window int
-
-func (x *Window) UnmarshalMsgPack(dec *msgpack.Decoder) error {
-	if dec.Type() != msgpack.Extension || dec.Extension() != windowExt {
-		err := &msgpack.DecodeConvertError{
-			SrcType:  dec.Type(),
-			DestType: reflect.TypeOf(x),
-		}
-		dec.Skip()
-		return err
-	}
-	n, err := decodeExt(dec.BytesNoCopy())
-	*x = Window(n)
-	return err
-}
-
-func (x Window) MarshalMsgPack(enc *msgpack.Encoder) error {
-	return enc.PackExtension(windowExt, encodeExt(int(x)))
-}
-
-func (x Window) String() string {
-	return fmt.Sprintf("Window:%d", int(x))
-}
-
-type Tabpage int
-
-func (x *Tabpage) UnmarshalMsgPack(dec *msgpack.Decoder) error {
-	if dec.Type() != msgpack.Extension || dec.Extension() != tabpageExt {
-		err := &msgpack.DecodeConvertError{
-			SrcType:  dec.Type(),
-			DestType: reflect.TypeOf(x),
-		}
-		dec.Skip()
-		return err
-	}
-	n, err := decodeExt(dec.BytesNoCopy())
-	*x = Tabpage(n)
-	return err
-}
-
-func (x Tabpage) MarshalMsgPack(enc *msgpack.Encoder) error {
-	return enc.PackExtension(tabpageExt, encodeExt(int(x)))
-}
-
-func (x Tabpage) String() string {
-	return fmt.Sprintf("Tabpage:%d", int(x))
 }

@@ -2,6 +2,114 @@
 
 package vim
 
+import (
+	"fmt"
+	"reflect"
+
+	"github.com/garyburd/neovim-go/msgpack"
+	"github.com/garyburd/neovim-go/msgpack/rpc"
+)
+
+const (
+	exceptionError  = 0
+	validationError = 1
+)
+
+func withExtensions() rpc.Option {
+	return rpc.WithExtensions(msgpack.ExtensionMap{
+
+		0: func(p []byte) (interface{}, error) {
+			x, err := decodeExt(p)
+			return Buffer(x), err
+		},
+
+		1: func(p []byte) (interface{}, error) {
+			x, err := decodeExt(p)
+			return Window(x), err
+		},
+
+		2: func(p []byte) (interface{}, error) {
+			x, err := decodeExt(p)
+			return Tabpage(x), err
+		},
+	})
+}
+
+// Buffer represents a remote Neovim buffer.
+type Buffer int
+
+func (x *Buffer) UnmarshalMsgPack(dec *msgpack.Decoder) error {
+	if dec.Type() != msgpack.Extension || dec.Extension() != 0 {
+		err := &msgpack.DecodeConvertError{
+			SrcType:  dec.Type(),
+			DestType: reflect.TypeOf(x),
+		}
+		dec.Skip()
+		return err
+	}
+	n, err := decodeExt(dec.BytesNoCopy())
+	*x = Buffer(n)
+	return err
+}
+
+func (x Buffer) MarshalMsgPack(enc *msgpack.Encoder) error {
+	return enc.PackExtension(0, encodeExt(int(x)))
+}
+
+func (x Buffer) String() string {
+	return fmt.Sprintf("Buffer:%d", int(x))
+}
+
+// Window represents a remote Neovim window.
+type Window int
+
+func (x *Window) UnmarshalMsgPack(dec *msgpack.Decoder) error {
+	if dec.Type() != msgpack.Extension || dec.Extension() != 1 {
+		err := &msgpack.DecodeConvertError{
+			SrcType:  dec.Type(),
+			DestType: reflect.TypeOf(x),
+		}
+		dec.Skip()
+		return err
+	}
+	n, err := decodeExt(dec.BytesNoCopy())
+	*x = Window(n)
+	return err
+}
+
+func (x Window) MarshalMsgPack(enc *msgpack.Encoder) error {
+	return enc.PackExtension(1, encodeExt(int(x)))
+}
+
+func (x Window) String() string {
+	return fmt.Sprintf("Window:%d", int(x))
+}
+
+// Tabpage represents a remote Neovim tabpage.
+type Tabpage int
+
+func (x *Tabpage) UnmarshalMsgPack(dec *msgpack.Decoder) error {
+	if dec.Type() != msgpack.Extension || dec.Extension() != 2 {
+		err := &msgpack.DecodeConvertError{
+			SrcType:  dec.Type(),
+			DestType: reflect.TypeOf(x),
+		}
+		dec.Skip()
+		return err
+	}
+	n, err := decodeExt(dec.BytesNoCopy())
+	*x = Tabpage(n)
+	return err
+}
+
+func (x Tabpage) MarshalMsgPack(enc *msgpack.Encoder) error {
+	return enc.PackExtension(2, encodeExt(int(x)))
+}
+
+func (x Tabpage) String() string {
+	return fmt.Sprintf("Tabpage:%d", int(x))
+}
+
 // BufferLineCount returns the number of lines in the buffer.
 func (v *Vim) BufferLineCount(buffer Buffer) (int, error) {
 	var result int
@@ -137,11 +245,13 @@ func (p *Pipeline) BufferName(buffer Buffer, result *string) {
 }
 
 // SetBufferName sets the full file name of a buffer.
+// BufFilePre/BufFilePost are triggered.
 func (v *Vim) SetBufferName(buffer Buffer, name string) error {
 	return v.call("buffer_set_name", nil, buffer, name)
 }
 
 // SetBufferName sets the full file name of a buffer.
+// BufFilePre/BufFilePost are triggered.
 func (p *Pipeline) SetBufferName(buffer Buffer, name string) {
 	p.call("buffer_set_name", nil, buffer, name)
 }
@@ -319,15 +429,17 @@ func (p *Pipeline) CommandOutput(str string, result *string) {
 }
 
 // Eval evaluates the expression str using the Vim internal expression
-// evaluator (see |expression|). Dictionaries and lists are recursively
-// expanded. Eval evaluates a vimscript expression.
+// evaluator.
+//
+//  :help expression
 func (v *Vim) Eval(str string, result interface{}) error {
 	return v.call("vim_eval", result, str)
 }
 
 // Eval evaluates the expression str using the Vim internal expression
-// evaluator (see |expression|). Dictionaries and lists are recursively
-// expanded. Eval evaluates a vimscript expression.
+// evaluator.
+//
+//  :help expression
 func (p *Pipeline) Eval(str string, result interface{}) {
 	p.call("vim_eval", result, str)
 }
@@ -452,32 +564,32 @@ func (p *Pipeline) SetOption(name string, value interface{}) {
 	p.call("vim_set_option", nil, name, value)
 }
 
-// WriteOut writes a message to the output buffer.
+// WriteOut prints str as a normal message.
 func (v *Vim) WriteOut(str string) error {
 	return v.call("vim_out_write", nil, str)
 }
 
-// WriteOut writes a message to the output buffer.
+// WriteOut prints str as a normal message.
 func (p *Pipeline) WriteOut(str string) {
 	p.call("vim_out_write", nil, str)
 }
 
-// WriteErr writes a message to the error buffer.
+// WriteErr prints str as an error message.
 func (v *Vim) WriteErr(str string) error {
 	return v.call("vim_err_write", nil, str)
 }
 
-// WriteErr writes a message to the error buffer.
+// WriteErr prints str as an error message.
 func (p *Pipeline) WriteErr(str string) {
 	p.call("vim_err_write", nil, str)
 }
 
-// ReportError writes a message and a newline to the error buffer.
+// ReportError writes prints str and a newline as an error message.
 func (v *Vim) ReportError(str string) error {
 	return v.call("vim_report_error", nil, str)
 }
 
-// ReportError writes a message and a newline to the error buffer.
+// ReportError writes prints str and a newline as an error message.
 func (p *Pipeline) ReportError(str string) {
 	p.call("vim_report_error", nil, str)
 }

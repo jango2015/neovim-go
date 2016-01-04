@@ -6,7 +6,6 @@ package plugin
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 	"sync"
 
@@ -55,7 +54,6 @@ func RegisterHandlers(v *vim.Vim, paths ...string) error {
 	}
 	for _, path := range paths {
 		for _, s := range pluginSpecs {
-			log.Println(path + s.smSuffix)
 			if err := v.RegisterHandler(path+s.smSuffix, s.fn); err != nil {
 				return err
 			}
@@ -69,20 +67,41 @@ func RegisterHandlers(v *vim.Vim, paths ...string) error {
 	return nil
 }
 
-// Handle registers fn as a MsgPack RPC handler for the specified method name.
-func Handle(serviceMethod string, fn interface{}) {
-	handlers = append(handlers, &handler{fn: fn, sm: serviceMethod})
+// Handle registers fn as a MessagePack RPC handler for the specified method
+// name. The function signature for fn is one of
+//
+//  func(v *vim.Vim, {args}) ({resultType}, error)
+//  func(v *vim.Vim, {args}) error
+//  func(v *vim.Vim, {args})
+//
+// where {args} is zero or more arguments and {resultType} is the type of of a
+// return value. Call the handler from Neovim using the rpcnotify and
+// rpcrequest functions:
+//
+//  :help rpcrequest()
+//  :help rpcnotify()
+func Handle(method string, fn interface{}) {
+	handlers = append(handlers, &handler{fn: fn, sm: method})
 }
 
 // FunctionOptions specifies function options.
 type FunctionOptions struct {
-	// Eval is evaluated in Neovim and the result is passed the the handler
-	// function.
+	// Eval is an expression evaluated in Neovim. The result is passed the
+	// handler function.
 	Eval string
 }
 
 // HandleFunction registers fn as a handler for a Neovim function with the
-// specified name.
+// specified name. The name must be made of alphanumeric characters and '_',
+// and must start with a capital letter. The function signature for fn is one
+// of
+//
+//  func(v *vim.Vim, args {arrayType} [, eval {evalType}]) ({resultType}, error)
+//  func(v *vim.Vim, args {arrayType} [, eval {evalType}]) error
+//
+// where {arrayType} is a type that can be unmarshaled from a MessagePack
+// array, {evalType} is a type compatible with the Eval option expression and
+// {resultType} is the type of function result.
 func HandleFunction(name string, options *FunctionOptions, fn interface{}) {
 	m := make(map[string]string)
 	if options != nil {
@@ -169,8 +188,9 @@ type CommandOptions struct {
 }
 
 // HandleCommand registers fn as a handler for a Neovim command with the
-// specified name.
-//
+// specified name. The name must be made of alphanumeric characters and '_',
+// and must start with a capital letter.
+///
 // The arguments to fn function are:
 //
 //  v *vim.Vim
@@ -180,6 +200,8 @@ type CommandOptions struct {
 //  bang bool           when options.Bang == true
 //  register string     when options.Register == true
 //  eval interface{}    when options.Eval != ""
+//
+// The function fn must return an error.
 func HandleCommand(name string, options *CommandOptions, fn interface{}) error {
 	m := make(map[string]string)
 	if options != nil {

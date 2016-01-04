@@ -5,6 +5,11 @@
 // +build ignore
 
 // This program prints Neovim's API info as JSON.
+//
+// A snapshot of the output from this program is checked into api.json.
+// Compare api.json to the output from this program to discover changes to
+// Neovim's API.
+
 package main
 
 import (
