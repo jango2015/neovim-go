@@ -5,6 +5,14 @@
 // Package vimutil implements utilities for working with Vim.
 package vimutil
 
+import (
+	"bytes"
+	"io"
+	"strconv"
+
+	"github.com/garyburd/neovim-go/vim"
+)
+
 // QuickfixError represents an item in a quickfix list.
 type QuickfixError struct {
 	// Buffer number
@@ -36,4 +44,52 @@ type QuickfixError struct {
 
 	// Valid is non-zero if this is a recognized error message.
 	Valid int `msgpack:"valid,omitempty"`
+}
+
+// CommandCompletionArgs represents the arguments to a custom command line
+// completion function.
+//
+//  :help :command-completion-custom
+type CommandCompletionArgs struct {
+	// ArgLead is the leading portion of the argument currently being completed
+	// on.
+	ArgLead string `msgpack:",array"`
+
+	// CmdLine is the entire command line.
+	CmdLine string
+
+	// CursorPosString is decimal representation of the cursor position in
+	// bytes.
+	CursorPosString string
+}
+
+// CursorPos returns the cursor position.
+func (a *CommandCompletionArgs) CursorPos() int {
+	n, _ := strconv.Atoi(a.CursorPosString)
+	return n
+}
+
+type bufferReader struct {
+	v *vim.Vim
+	r io.Reader
+}
+
+// CurrentBufferReader returns a reader for the current buffer.
+func CurrentBufferReader(v *vim.Vim) io.Reader {
+	return &bufferReader{v: v}
+}
+
+func (br *bufferReader) Read(p []byte) (int, error) {
+	if br.r == nil {
+		b, err := br.v.CurrentBuffer()
+		if err != nil {
+			return 0, err
+		}
+		lines, err := br.v.BufferLineSlice(b, 0, -1, true, true)
+		if err != nil {
+			return 0, err
+		}
+		br.r = bytes.NewReader(bytes.Join(lines, []byte{'\n'}))
+	}
+	return br.r.Read(p)
 }
