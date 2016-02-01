@@ -227,10 +227,7 @@ func (e *Encoder) PackExtension(kind int, data []byte) error {
 
 func (e *Encoder) packStringLen(n int) error {
 	var b []byte
-	if n < 32 && n != 0 {
-		// TODO: remove n != 0 condition.
-		// The string "" is not encoded as 0xa0 to avoid possible bug in
-		// Neovim.
+	if n < 32 {
 		e.buf[0] = byte(fixStringCodeMin + n)
 		b = e.buf[:1]
 	} else if n <= math.MaxUint32 {
