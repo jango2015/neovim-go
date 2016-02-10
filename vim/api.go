@@ -564,22 +564,26 @@ func (p *Pipeline) SetOption(name string, value interface{}) {
 	p.call("vim_set_option", nil, name, value)
 }
 
-// WriteOut prints str as a normal message.
+// WriteOut writes a message to vim output buffer. The string is split and
+// flushed after each newline. Incomplete lines are kept for writing later.
 func (v *Vim) WriteOut(str string) error {
 	return v.call("vim_out_write", nil, str)
 }
 
-// WriteOut prints str as a normal message.
+// WriteOut writes a message to vim output buffer. The string is split and
+// flushed after each newline. Incomplete lines are kept for writing later.
 func (p *Pipeline) WriteOut(str string) {
 	p.call("vim_out_write", nil, str)
 }
 
-// WriteErr prints str as an error message.
+// WriteOut writes a message to vim error buffer. The string is split and
+// flushed after each newline. Incomplete lines are kept for writing later.
 func (v *Vim) WriteErr(str string) error {
 	return v.call("vim_err_write", nil, str)
 }
 
-// WriteErr prints str as an error message.
+// WriteOut writes a message to vim error buffer. The string is split and
+// flushed after each newline. Incomplete lines are kept for writing later.
 func (p *Pipeline) WriteErr(str string) {
 	p.call("vim_err_write", nil, str)
 }

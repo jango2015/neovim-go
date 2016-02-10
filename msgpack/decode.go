@@ -41,6 +41,32 @@ func (ds *decodeState) saveErrorAndSkip(destValue reflect.Value, srcValue interf
 }
 
 // Decode decodes the next value in the stream to v.
+//
+// Decode uses the inverse of the encodings that Encoder.Encode uses,
+// allocating maps, slices, and pointers as necessary, with the following
+// additional rules:
+//
+// To decode into a pointer, Decode first handles the case of a MessagePack
+// nil. In that case, Decode sets the pointer to nil. Otherwise, Decode decodes
+// the stream into the value pointed at by the pointer. If the pointer is nil,
+// Decode allocates a new value for it to point to.
+//
+// To decode a MessagePack array into a slice, Decode sets the slice length to
+// the length of the MessagePack array or reallocates the slice if there is
+// insufficient capaicity. Slice elments are not cleared before decoding the
+// element.
+//
+// To decode a MessagePack array into a Go array, Decode decodes the
+// MessagePack array elements into corresponding Go array elements.  If the Go
+// array is smaller than the MessagePack array, the additional MessagePack
+// array elements are discarded. If the MessagePack array is smaller than the
+// Go array, the additional Go array elements are set to zero values.
+//
+// If a MessagePack value is not appropriate for a given target type, or if a
+// MessagePack number overflows the target type, Decode skips that field and
+// completes the decoding as best it can.  If no more serious errors are
+// encountered, Decode returns an DecodeConvertError describing the earliest
+// such error.
 func (d *Decoder) Decode(v interface{}) (err error) {
 	defer handleAbort(&err)
 	ds := &decodeState{

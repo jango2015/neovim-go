@@ -343,13 +343,19 @@ var methods = []*struct {
 		Name:   "WriteOut",
 		Sm:     "vim_out_write",
 		Params: []param{{"str", "string"}},
-		Doc:    `// WriteOut prints str as a normal message.`,
+		Doc: `
+// WriteOut writes a message to vim output buffer. The string is split and
+// flushed after each newline. Incomplete lines are kept for writing later.
+`,
 	},
 	{
 		Name:   "WriteErr",
 		Sm:     "vim_err_write",
 		Params: []param{{"str", "string"}},
-		Doc:    `// WriteErr prints str as an error message.`,
+		Doc: `
+// WriteOut writes a message to vim error buffer. The string is split and
+// flushed after each newline. Incomplete lines are kept for writing later.
+`,
 	},
 	{
 		Name:   "ReportError",

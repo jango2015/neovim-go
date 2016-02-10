@@ -9,8 +9,6 @@ import (
 	"io"
 	"reflect"
 	"testing"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 type testDecStruct struct {
@@ -113,7 +111,6 @@ func TestDecode(t *testing.T) {
 
 		v := reflect.ValueOf(pv).Elem().Interface()
 		if !reflect.DeepEqual(v, tt.v) {
-			spew.Dump(v, tt.v)
 			t.Errorf("decode(%+v, %T) returned %#v, want %#v", tt.data, pv, v, tt.v)
 		}
 

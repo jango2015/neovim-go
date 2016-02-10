@@ -10,6 +10,36 @@ import (
 )
 
 // Encode writes the MessagePack encoding of v to the stream.
+//
+// Encode traverses the value v recursively. If an encountered value implements
+// the Marshaler interface Encode calls its MarshalMsgPack method to write the
+// value to the stream.
+//
+// Otherwise, Encode uses the following type-dependent default encodings:
+//
+//  Go Type             MessagePack Type
+//  bool                true or false
+//  float32, float54    float64
+//  string              string
+//  []byte              binary
+//  slices, arrays      array
+//  struct, map         map
+//
+// Struct values encode as maps or arrays. If any struct field tag specifies
+// the "array" option, then the struct is encoded as an array. Otherwise, the
+// struct is encoded as a map.  Each exported struct field becomes a member of
+// the map unless
+//   - the field's tag is "-", or
+//   - the field is empty and its tag specifies the "omitempty" option.
+//
+// Anonymous struct fields are marshaled as if their inner exported fields
+// were fields in the outer struct.
+//
+// Pointer values encode as the value pointed to. A nil pointer encodes as the
+// MessagePack nil value.
+//
+// Interface values encode as the value contained in the interface. A nil
+// interface value encodes as the MessagePack nil value.
 func (e *Encoder) Encode(v interface{}) (err error) {
 	if v == nil {
 		return e.PackNil()
