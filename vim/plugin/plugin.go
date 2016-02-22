@@ -10,7 +10,7 @@
 // run the plugin host.
 //
 // Plugins should use the default logger in the standard log package for
-// logging. If the environment variable NEOVIM_GO_LOG_FILE is set, then the the
+// logging. If the environment variable NEOVIM_GO_LOG_FILE is set, then the
 // default logger is configured to append to the file specified by the
 // environment variable.
 package plugin

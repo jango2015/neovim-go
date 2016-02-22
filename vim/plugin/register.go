@@ -18,8 +18,8 @@ type pluginSpec struct {
 	Sync bool              `msgpack:"sync"`
 	Opts map[string]string `msgpack:"opts"`
 
-	smSuffix string
-	fn       interface{}
+	ServiceMethod string `msgpack:"-"`
+	fn            interface{}
 }
 
 type handler struct {
@@ -54,7 +54,7 @@ func RegisterHandlers(v *vim.Vim, paths ...string) error {
 	}
 	for _, path := range paths {
 		for _, s := range pluginSpecs {
-			if err := v.RegisterHandler(path+s.smSuffix, s.fn); err != nil {
+			if err := v.RegisterHandler(path+s.ServiceMethod, s.fn); err != nil {
 				return err
 			}
 		}
@@ -115,8 +115,8 @@ func HandleFunction(name string, options *FunctionOptions, fn interface{}) {
 		Sync: isSync(fn),
 		Opts: m,
 
-		fn:       fn,
-		smSuffix: ":function:" + name,
+		fn:            fn,
+		ServiceMethod: ":function:" + name,
 	})
 }
 
@@ -250,14 +250,17 @@ func HandleCommand(name string, options *CommandOptions, fn interface{}) error {
 		Sync: isSync(fn),
 		Opts: m,
 
-		smSuffix: ":command:" + name,
-		fn:       fn,
+		ServiceMethod: ":command:" + name,
+		fn:            fn,
 	})
 	return nil
 }
 
 // AutocmdOptions specifies autocmd options.
 type AutocmdOptions struct {
+	// Group specifies the autocmd group.
+	Group string
+
 	// Pattern specifies an autocmd pattern.
 	//
 	//  :help autocmd-patterns
@@ -279,13 +282,17 @@ func HandleAutocmd(event string, options *AutocmdOptions, fn interface{}) {
 	m := make(map[string]string)
 	if options != nil {
 
+		if options.Group != "" {
+			m["group"] = options.Group
+		}
+
 		if options.Pattern != "" {
 			m["pattern"] = options.Pattern
 			pattern = options.Pattern
 		}
 
 		if options.Nested {
-			m["nested"] = ""
+			m["nested"] = "1"
 		}
 
 		if options.Eval != "" {
@@ -299,7 +306,8 @@ func HandleAutocmd(event string, options *AutocmdOptions, fn interface{}) {
 		Sync: isSync(fn),
 		Opts: m,
 
-		fn:       fn,
-		smSuffix: fmt.Sprintf(":autocmd:%s:%s", event, pattern),
+		fn:            fn,
+		ServiceMethod: fmt.Sprintf(":autocmd:%s:%s", event, pattern),
 	})
+
 }
