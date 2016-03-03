@@ -6,7 +6,10 @@ package plugin
 
 import (
 	"fmt"
+	"io"
 	"reflect"
+	"sort"
+	"strings"
 	"sync"
 
 	"github.com/garyburd/neovim-go/vim"
@@ -310,4 +313,40 @@ func HandleAutocmd(event string, options *AutocmdOptions, fn interface{}) {
 		ServiceMethod: fmt.Sprintf(":autocmd:%s:%s", event, pattern),
 	})
 
+}
+
+type byServiceMethod []*pluginSpec
+
+func (a byServiceMethod) Len() int           { return len(a) }
+func (a byServiceMethod) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byServiceMethod) Less(i, j int) bool { return a[i].ServiceMethod < a[j].ServiceMethod }
+
+func writePluginSpecs(w io.Writer) {
+	// Sort for consistent order on output.
+	sort.Sort(byServiceMethod(pluginSpecs))
+	escape := strings.NewReplacer("'", "''").Replace
+
+	fmt.Fprintf(w, "let s:specs = [\n")
+	for _, spec := range pluginSpecs {
+		sync := "0"
+		if spec.Sync {
+			sync = "1"
+		}
+		fmt.Fprintf(w, "\\ {'type': '%s', 'name': '%s', 'sync': %s, 'opts': {", spec.Type, spec.Name, sync)
+
+		var keys []string
+		for k := range spec.Opts {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+
+		optDelim := ""
+		for _, k := range keys {
+			fmt.Fprintf(w, "%s'%s': '%s'", optDelim, k, escape(spec.Opts[k]))
+			optDelim = ", "
+		}
+
+		fmt.Fprintf(w, "}},\n")
+	}
+	fmt.Fprintf(w, "\\ ]\n")
 }

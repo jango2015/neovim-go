@@ -16,6 +16,7 @@
 package plugin
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -23,10 +24,21 @@ import (
 	"github.com/garyburd/neovim-go/vim"
 )
 
+var doWritePluginSpecs = flag.Bool("specs", false, "Write plugin specs to stdout")
+
 // Main implements the main function for a Neovim remote plugin. The function
 // creates a Neovim peer, registers RPC handlers and starts the peer server
 // loop.
 func Main() {
+	if !flag.Parsed() {
+		flag.Parse()
+	}
+
+	if *doWritePluginSpecs {
+		writePluginSpecs(os.Stdout)
+		return
+	}
+
 	stdout := os.Stdout
 	if fname := os.Getenv("NEOVIM_GO_LOG_FILE"); fname != "" {
 		f, err := os.OpenFile(fname, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
