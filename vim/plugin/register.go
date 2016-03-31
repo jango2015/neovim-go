@@ -105,11 +105,26 @@ type FunctionOptions struct {
 // where {arrayType} is a type that can be unmarshaled from a MessagePack
 // array, {evalType} is a type compatible with the Eval option expression and
 // {resultType} is the type of function result.
+//
+// If options.Eval == "*", then HandleFunction constructs the expression to
+// evaluate in Neovim from the type of fn's last argument. The last argument is
+// assumed to be a pointer to a struct type with 'eval' field tags set to the
+// expression to evaluate for each field. Nested structs are supported. The
+// expression for the function
+//
+//  func example(v *vim.Vim, eval *struct{
+//      GOPATH string `eval:"$GOPATH"`
+//      Cwd    string `eval:"getcwd()"`
+//  })
+//
+// is
+//
+//  {'GOPATH': $GOPATH, Cwd: getcwd()}
 func HandleFunction(name string, options *FunctionOptions, fn interface{}) {
 	m := make(map[string]string)
 	if options != nil {
 		if options.Eval != "" {
-			m["eval"] = options.Eval
+			m["eval"] = eval(options.Eval, fn)
 		}
 	}
 	pluginSpecs = append(pluginSpecs, &pluginSpec{
@@ -205,6 +220,11 @@ type CommandOptions struct {
 //  eval interface{}    when options.Eval != ""
 //
 // The function fn must return an error.
+//
+// If options.Eval == "*", then HandleCommand constructs the expression to
+// evaluate in Neovim from the type of fn's last argument. See the
+// HandleFunction documentation for information on how the expression is
+// generated.
 func HandleCommand(name string, options *CommandOptions, fn interface{}) error {
 	m := make(map[string]string)
 	if options != nil {
@@ -231,7 +251,7 @@ func HandleCommand(name string, options *CommandOptions, fn interface{}) error {
 		}
 
 		if options.Eval != "" {
-			m["eval"] = options.Eval
+			m["eval"] = eval(options.Eval, fn)
 		}
 
 		if options.Addr != "" {
@@ -280,6 +300,11 @@ type AutocmdOptions struct {
 }
 
 // HandleAutocmd registers fn as a handler for the specified autocmnd event.
+//
+// If options.Eval == "*", then HandleAutocmd constructs the expression to
+// evaluate in Neovim from the type of fn's last argument. See the
+// HandleFunction documentation for information on how the expression is
+// generated.
 func HandleAutocmd(event string, options *AutocmdOptions, fn interface{}) {
 	pattern := ""
 	m := make(map[string]string)
@@ -299,7 +324,7 @@ func HandleAutocmd(event string, options *AutocmdOptions, fn interface{}) {
 		}
 
 		if options.Eval != "" {
-			m["eval"] = options.Eval
+			m["eval"] = eval(options.Eval, fn)
 		}
 
 	}
@@ -313,6 +338,61 @@ func HandleAutocmd(event string, options *AutocmdOptions, fn interface{}) {
 		ServiceMethod: fmt.Sprintf(":autocmd:%s:%s", event, pattern),
 	})
 
+}
+
+func eval(eval string, f interface{}) string {
+	if eval != "*" {
+		return eval
+	}
+	ft := reflect.TypeOf(f)
+	if ft.Kind() != reflect.Func || ft.NumIn() < 1 {
+		panic(`Eval: "*" option requires function with at least one argument`)
+	}
+	argt := ft.In(ft.NumIn() - 1)
+	if argt.Kind() != reflect.Ptr || argt.Elem().Kind() != reflect.Struct {
+		panic(`Eval: "*" option requires function with pointer to struct as last argument`)
+	}
+	return structEval(argt.Elem())
+}
+
+func structEval(t reflect.Type) string {
+	buf := []byte{'{'}
+	sep := ""
+	for i := 0; i < t.NumField(); i++ {
+		sf := t.Field(i)
+		if sf.Anonymous {
+			panic(`Eval: "*" does not support anonymous fields`)
+		}
+
+		eval := sf.Tag.Get("eval")
+		if eval == "" {
+			ft := sf.Type
+			if ft.Kind() == reflect.Ptr {
+				ft = ft.Elem()
+			}
+			if ft.Kind() == reflect.Struct {
+				eval = structEval(ft)
+			}
+		}
+
+		if eval == "" {
+			continue
+		}
+
+		name := strings.Split(sf.Tag.Get("msgpack"), ",")[0]
+		if name == "" {
+			name = sf.Name
+		}
+
+		buf = append(buf, sep...)
+		buf = append(buf, "'"...)
+		buf = append(buf, name...)
+		buf = append(buf, "': "...)
+		buf = append(buf, eval...)
+		sep = ", "
+	}
+	buf = append(buf, '}')
+	return string(buf)
 }
 
 type byServiceMethod []*pluginSpec
