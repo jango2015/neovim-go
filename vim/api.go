@@ -123,6 +123,7 @@ func (p *Pipeline) BufferLineCount(buffer Buffer, result *int) {
 }
 
 // BufferLine returns the line at the given index.
+//
 // Deprecated: use BufferLines instead.
 //     for positive indices (including 0) use
 //         "BufferLines(buffer, index, index+1, true)"
@@ -135,6 +136,7 @@ func (v *Vim) BufferLine(buffer Buffer, index int) ([]byte, error) {
 }
 
 // BufferLine returns the line at the given index.
+//
 // Deprecated: use BufferLines instead.
 //     for positive indices (including 0) use
 //         "BufferLines(buffer, index, index+1, true)"
@@ -145,6 +147,7 @@ func (p *Pipeline) BufferLine(buffer Buffer, index int, result *[]byte) {
 }
 
 // SetBufferLine sets the line at the given index.
+//
 // Deprecated: use SetBufferLines instead.
 //     for positive indices use
 //         "SetBufferLines(buffer, index, index+1, true, [lines])"
@@ -155,6 +158,7 @@ func (v *Vim) SetBufferLine(buffer Buffer, index int, line []byte) error {
 }
 
 // SetBufferLine sets the line at the given index.
+//
 // Deprecated: use SetBufferLines instead.
 //     for positive indices use
 //         "SetBufferLines(buffer, index, index+1, true, [lines])"
@@ -165,6 +169,7 @@ func (p *Pipeline) SetBufferLine(buffer Buffer, index int, line []byte) {
 }
 
 // DeleteBufferLine deletes the line at the given index.
+//
 // Deprecated: use SetBufferLines instead.
 //     for positive indices use
 //         "SetBufferLines(buffer, index, index+1, true, [])"
@@ -175,6 +180,7 @@ func (v *Vim) DeleteBufferLine(buffer Buffer, index int) error {
 }
 
 // DeleteBufferLine deletes the line at the given index.
+//
 // Deprecated: use SetBufferLines instead.
 //     for positive indices use
 //         "SetBufferLines(buffer, index, index+1, true, [])"
@@ -185,6 +191,7 @@ func (p *Pipeline) DeleteBufferLine(buffer Buffer, index int) {
 }
 
 // BufferLineSlice retrieves a line range from a buffer.
+//
 // Deprecated: use BufferLines(buffer, newstart, newend, strictIndexing)
 //     newstart = start + int(not includeStart) - int(start < 0)
 //     newend = end + int(includeEnd) - int(end < 0)
@@ -196,6 +203,7 @@ func (v *Vim) BufferLineSlice(buffer Buffer, start int, end int, includeStart bo
 }
 
 // BufferLineSlice retrieves a line range from a buffer.
+//
 // Deprecated: use BufferLines(buffer, newstart, newend, strictIndexing)
 //     newstart = start + int(not includeStart) - int(start < 0)
 //     newend = end + int(includeEnd) - int(end < 0)
@@ -205,6 +213,7 @@ func (p *Pipeline) BufferLineSlice(buffer Buffer, start int, end int, includeSta
 }
 
 // SetBufferLineSlice replaces a line range on a buffer.
+//
 // Deprecated: use SetBufferLines(buffer, newstart, newend, false, lines)
 //     newstart = start + int(not includeStart) + int(start < 0)
 //     newend = end + int(includeEnd) + int(end < 0)
@@ -214,6 +223,7 @@ func (v *Vim) SetBufferLineSlice(buffer Buffer, start int, end int, includeStart
 }
 
 // SetBufferLineSlice replaces a line range on a buffer.
+//
 // Deprecated: use SetBufferLines(buffer, newstart, newend, false, lines)
 //     newstart = start + int(not includeStart) + int(start < 0)
 //     newend = end + int(includeEnd) + int(end < 0)
@@ -223,55 +233,59 @@ func (p *Pipeline) SetBufferLineSlice(buffer Buffer, start int, end int, include
 }
 
 // BufferLines retrieves a line range from a buffer.
-// Indexing is zero-based, end-exclusive. Negative indices are interpreted
-// as length+1+index, i e -1 refers to the index past the end. So to get the
-// last element set start=-2 and end=-1.
 //
-// Out-of-bounds indices are clamped to the nearest valid value, unless
-// strict_indexing is set.
-func (v *Vim) BufferLines(buffer Buffer, start int, end int, strictIndexing bool) ([][]byte, error) {
+// Indexing is zero-based, end-exclusive. Negative indices are interpreted as
+// length+1+index, i e -1 refers to the index past the end. So to get the last
+// element set start=-2 and end=-1.
+//
+// Out-of-bounds indices are clamped to the nearest valid value, unless strict
+// = true.
+func (v *Vim) BufferLines(buffer Buffer, start int, end int, strict bool) ([][]byte, error) {
 	var result [][]byte
-	err := v.call("buffer_get_lines", &result, buffer, start, end, strictIndexing)
+	err := v.call("buffer_get_lines", &result, buffer, start, end, strict)
 	return result, err
 }
 
 // BufferLines retrieves a line range from a buffer.
-// Indexing is zero-based, end-exclusive. Negative indices are interpreted
-// as length+1+index, i e -1 refers to the index past the end. So to get the
-// last element set start=-2 and end=-1.
 //
-// Out-of-bounds indices are clamped to the nearest valid value, unless
-// strict_indexing is set.
-func (p *Pipeline) BufferLines(buffer Buffer, start int, end int, strictIndexing bool, result *[][]byte) {
-	p.call("buffer_get_lines", result, buffer, start, end, strictIndexing)
+// Indexing is zero-based, end-exclusive. Negative indices are interpreted as
+// length+1+index, i e -1 refers to the index past the end. So to get the last
+// element set start=-2 and end=-1.
+//
+// Out-of-bounds indices are clamped to the nearest valid value, unless strict
+// = true.
+func (p *Pipeline) BufferLines(buffer Buffer, start int, end int, strict bool, result *[][]byte) {
+	p.call("buffer_get_lines", result, buffer, start, end, strict)
 }
 
 // SetBufferLines replaces a line range on a buffer.
-// Indexing is zero-based, end-exclusive. Negative indices are interpreted
-// as length+1+index, i e -1 refers to the index past the end. So to change
-// or delete the last element set start=-2 and end=-1.
+//
+// Indexing is zero-based, end-exclusive. Negative indices are interpreted as
+// length+1+index, ie -1 refers to the index past the end. So to change or
+// delete the last element set start=-2 and end=-1.
 //
 // To insert lines at a given index, set both start and end to the same index.
 // To delete a range of lines, set replacement to an empty array.
 //
-// Out-of-bounds indices are clamped to the nearest valid value, unless
-// strict_indexing is set.
-func (v *Vim) SetBufferLines(buffer Buffer, start int, end int, strictIndexing bool, replacement [][]byte) error {
-	return v.call("buffer_set_lines", nil, buffer, start, end, strictIndexing, replacement)
+// Out-of-bounds indices are clamped to the nearest valid value, unless strict
+// = true.
+func (v *Vim) SetBufferLines(buffer Buffer, start int, end int, strict bool, replacement [][]byte) error {
+	return v.call("buffer_set_lines", nil, buffer, start, end, strict, replacement)
 }
 
 // SetBufferLines replaces a line range on a buffer.
-// Indexing is zero-based, end-exclusive. Negative indices are interpreted
-// as length+1+index, i e -1 refers to the index past the end. So to change
-// or delete the last element set start=-2 and end=-1.
+//
+// Indexing is zero-based, end-exclusive. Negative indices are interpreted as
+// length+1+index, ie -1 refers to the index past the end. So to change or
+// delete the last element set start=-2 and end=-1.
 //
 // To insert lines at a given index, set both start and end to the same index.
 // To delete a range of lines, set replacement to an empty array.
 //
-// Out-of-bounds indices are clamped to the nearest valid value, unless
-// strict_indexing is set.
-func (p *Pipeline) SetBufferLines(buffer Buffer, start int, end int, strictIndexing bool, replacement [][]byte) {
-	p.call("buffer_set_lines", nil, buffer, start, end, strictIndexing, replacement)
+// Out-of-bounds indices are clamped to the nearest valid value, unless strict
+// = true.
+func (p *Pipeline) SetBufferLines(buffer Buffer, start int, end int, strict bool, replacement [][]byte) {
+	p.call("buffer_set_lines", nil, buffer, start, end, strict, replacement)
 }
 
 // BufferVar gets a buffer-scoped (b:) variable.
@@ -367,12 +381,14 @@ func (p *Pipeline) IsBufferValid(buffer Buffer, result *bool) {
 }
 
 // InsertBUffer inserts a range of lines to a buffer at the specified index.
+//
 // Deprecated: use SetBufferLines(buffer, lnum, lnum, true, lines)
 func (v *Vim) InsertBuffer(buffer Buffer, lnum int, lines [][]byte) error {
 	return v.call("buffer_insert", nil, buffer, lnum, lines)
 }
 
 // InsertBUffer inserts a range of lines to a buffer at the specified index.
+//
 // Deprecated: use SetBufferLines(buffer, lnum, lnum, true, lines)
 func (p *Pipeline) InsertBuffer(buffer Buffer, lnum int, lines [][]byte) {
 	p.call("buffer_insert", nil, buffer, lnum, lines)
@@ -470,48 +486,58 @@ func (p *Pipeline) ClearBufferHighlight(buffer Buffer, srcID int, startLine int,
 	p.call(" buffer_clear_highlight", nil, buffer, srcID, startLine, endLine)
 }
 
+// TabpageWindows returns the windows in a tabpage.
 func (v *Vim) TabpageWindows(tabpage Tabpage) ([]Window, error) {
 	var result []Window
 	err := v.call("tabpage_get_windows", &result, tabpage)
 	return result, err
 }
 
+// TabpageWindows returns the windows in a tabpage.
 func (p *Pipeline) TabpageWindows(tabpage Tabpage, result *[]Window) {
 	p.call("tabpage_get_windows", result, tabpage)
 }
 
+// TabpageVar gets a tab-scoped (t:) variable.
 func (v *Vim) TabpageVar(tabpage Tabpage, name string, result interface{}) error {
 	return v.call("tabpage_get_var", result, tabpage, name)
 }
 
+// TabpageVar gets a tab-scoped (t:) variable.
 func (p *Pipeline) TabpageVar(tabpage Tabpage, name string, result interface{}) {
 	p.call("tabpage_get_var", result, tabpage, name)
 }
 
+// SetTabpageVar isets a tab-scoped (t:) variable. A nil value deletes the variable.
 func (v *Vim) SetTabpageVar(tabpage Tabpage, name string, value interface{}, result interface{}) error {
 	return v.call("tabpage_set_var", result, tabpage, name, value)
 }
 
+// SetTabpageVar isets a tab-scoped (t:) variable. A nil value deletes the variable.
 func (p *Pipeline) SetTabpageVar(tabpage Tabpage, name string, value interface{}, result interface{}) {
 	p.call("tabpage_set_var", result, tabpage, name, value)
 }
 
+// TabpageWindow gets the current window in a tab page.
 func (v *Vim) TabpageWindow(tabpage Tabpage) (Window, error) {
 	var result Window
 	err := v.call("tabpage_get_window", &result, tabpage)
 	return result, err
 }
 
+// TabpageWindow gets the current window in a tab page.
 func (p *Pipeline) TabpageWindow(tabpage Tabpage, result *Window) {
 	p.call("tabpage_get_window", result, tabpage)
 }
 
+// IsTabpageValid checks if a tab page is valid.
 func (v *Vim) IsTabpageValid(tabpage Tabpage) (bool, error) {
 	var result bool
 	err := v.call("tabpage_is_valid", &result, tabpage)
 	return result, err
 }
 
+// IsTabpageValid checks if a tab page is valid.
 func (p *Pipeline) IsTabpageValid(tabpage Tabpage, result *bool) {
 	p.call("tabpage_is_valid", result, tabpage)
 }
@@ -533,7 +559,7 @@ func (p *Pipeline) Command(str string) {
 //  n:  Do not remap keys.
 //  t:  Handle keys as if typed; otherwise they are handled as if coming from a
 //     mapping. This matters for undo, opening folds, etc.
-func (v *Vim) Feedkeys(keys string, mode string, escapeCsi bool) error {
+func (v *Vim) FeedKeys(keys string, mode string, escapeCsi bool) error {
 	return v.call("vim_feedkeys", nil, keys, mode, escapeCsi)
 }
 
@@ -544,7 +570,7 @@ func (v *Vim) Feedkeys(keys string, mode string, escapeCsi bool) error {
 //  n:  Do not remap keys.
 //  t:  Handle keys as if typed; otherwise they are handled as if coming from a
 //     mapping. This matters for undo, opening folds, etc.
-func (p *Pipeline) Feedkeys(keys string, mode string, escapeCsi bool) {
+func (p *Pipeline) FeedKeys(keys string, mode string, escapeCsi bool) {
 	p.call("vim_feedkeys", nil, keys, mode, escapeCsi)
 }
 
@@ -692,34 +718,34 @@ func (p *Pipeline) DeleteCurrentLine() {
 	p.call("vim_del_current_line", nil)
 }
 
-// Var gets a global variable.
+// Var gets a global (g:) variable.
 func (v *Vim) Var(name string, result interface{}) error {
 	return v.call("vim_get_var", result, name)
 }
 
-// Var gets a global variable.
+// Var gets a global (g:) variable.
 func (p *Pipeline) Var(name string, result interface{}) {
 	p.call("vim_get_var", result, name)
 }
 
-// SetVar sets a global variable. The value nil deletes the variable. Result is
-// the previous value of the variable.
+// SetVar sets a global (g:) variable. The value nil deletes the variable.
+// Result is the previous value of the variable.
 func (v *Vim) SetVar(name string, value interface{}, result interface{}) error {
 	return v.call("vim_set_var", result, name, value)
 }
 
-// SetVar sets a global variable. The value nil deletes the variable. Result is
-// the previous value of the variable.
+// SetVar sets a global (g:) variable. The value nil deletes the variable.
+// Result is the previous value of the variable.
 func (p *Pipeline) SetVar(name string, value interface{}, result interface{}) {
 	p.call("vim_set_var", result, name, value)
 }
 
-// Vvar gets a vim variable.
+// Vvar gets a vim (v:) variable.
 func (v *Vim) Vvar(name string, result interface{}) error {
 	return v.call("vim_get_vvar", result, name)
 }
 
-// Vvar gets a vim variable.
+// Vvar gets a vim (v:) variable.
 func (p *Pipeline) Vvar(name string, result interface{}) {
 	p.call("vim_get_vvar", result, name)
 }
@@ -756,13 +782,13 @@ func (p *Pipeline) WriteOut(str string) {
 	p.call("vim_out_write", nil, str)
 }
 
-// WriteOut writes a message to vim error buffer. The string is split and
+// WriteErr writes a message to vim error buffer. The string is split and
 // flushed after each newline. Incomplete lines are kept for writing later.
 func (v *Vim) WriteErr(str string) error {
 	return v.call("vim_err_write", nil, str)
 }
 
-// WriteOut writes a message to vim error buffer. The string is split and
+// WriteErr writes a message to vim error buffer. The string is split and
 // flushed after each newline. Incomplete lines are kept for writing later.
 func (p *Pipeline) WriteErr(str string) {
 	p.call("vim_err_write", nil, str)
@@ -778,86 +804,104 @@ func (p *Pipeline) ReportError(str string) {
 	p.call("vim_report_error", nil, str)
 }
 
+// Buffers returns the current list of buffers.
 func (v *Vim) Buffers() ([]Buffer, error) {
 	var result []Buffer
 	err := v.call("vim_get_buffers", &result)
 	return result, err
 }
 
+// Buffers returns the current list of buffers.
 func (p *Pipeline) Buffers(result *[]Buffer) {
 	p.call("vim_get_buffers", result)
 }
 
+// CurrentBuffer returns the current buffer.
 func (v *Vim) CurrentBuffer() (Buffer, error) {
 	var result Buffer
 	err := v.call("vim_get_current_buffer", &result)
 	return result, err
 }
 
+// CurrentBuffer returns the current buffer.
 func (p *Pipeline) CurrentBuffer(result *Buffer) {
 	p.call("vim_get_current_buffer", result)
 }
 
+// SetCurrentBuffer sets the current buffer.
 func (v *Vim) SetCurrentBuffer(buffer Buffer) error {
 	return v.call("vim_set_current_buffer", nil, buffer)
 }
 
+// SetCurrentBuffer sets the current buffer.
 func (p *Pipeline) SetCurrentBuffer(buffer Buffer) {
 	p.call("vim_set_current_buffer", nil, buffer)
 }
 
+// Windows returns the current list of windows.
 func (v *Vim) Windows() ([]Window, error) {
 	var result []Window
 	err := v.call("vim_get_windows", &result)
 	return result, err
 }
 
+// Windows returns the current list of windows.
 func (p *Pipeline) Windows(result *[]Window) {
 	p.call("vim_get_windows", result)
 }
 
+// CurrentWindow returns the current window.
 func (v *Vim) CurrentWindow() (Window, error) {
 	var result Window
 	err := v.call("vim_get_current_window", &result)
 	return result, err
 }
 
+// CurrentWindow returns the current window.
 func (p *Pipeline) CurrentWindow(result *Window) {
 	p.call("vim_get_current_window", result)
 }
 
+// SetCurrentWindow sets the current window.
 func (v *Vim) SetCurrentWindow(window Window) error {
 	return v.call("vim_set_current_window", nil, window)
 }
 
+// SetCurrentWindow sets the current window.
 func (p *Pipeline) SetCurrentWindow(window Window) {
 	p.call("vim_set_current_window", nil, window)
 }
 
+// Tabpages returns the current list of tabpages.
 func (v *Vim) Tabpages() ([]Tabpage, error) {
 	var result []Tabpage
 	err := v.call("vim_get_tabpages", &result)
 	return result, err
 }
 
+// Tabpages returns the current list of tabpages.
 func (p *Pipeline) Tabpages(result *[]Tabpage) {
 	p.call("vim_get_tabpages", result)
 }
 
+// CurrentTabpage returns the current tabpage.
 func (v *Vim) CurrentTabpage() (Tabpage, error) {
 	var result Tabpage
 	err := v.call("vim_get_current_tabpage", &result)
 	return result, err
 }
 
+// CurrentTabpage returns the current tabpage.
 func (p *Pipeline) CurrentTabpage(result *Tabpage) {
 	p.call("vim_get_current_tabpage", result)
 }
 
+// SetCurrentTabpage sets the current tabpage.
 func (v *Vim) SetCurrentTabpage(tabpage Tabpage) error {
 	return v.call("vim_set_current_tabpage", nil, tabpage)
 }
 
+// SetCurrentTabpage sets the current tabpage.
 func (p *Pipeline) SetCurrentTabpage(tabpage Tabpage) {
 	p.call("vim_set_current_tabpage", nil, tabpage)
 }
@@ -912,128 +956,156 @@ func (p *Pipeline) APIInfo(result *[]interface{}) {
 	p.call("vim_get_api_info", result)
 }
 
+// WindowBuffer returns the current buffer in a window.
 func (v *Vim) WindowBuffer(window Window) (Buffer, error) {
 	var result Buffer
 	err := v.call("window_get_buffer", &result, window)
 	return result, err
 }
 
+// WindowBuffer returns the current buffer in a window.
 func (p *Pipeline) WindowBuffer(window Window, result *Buffer) {
 	p.call("window_get_buffer", result, window)
 }
 
+// WindowCursor returns the cursor position in the window.
 func (v *Vim) WindowCursor(window Window) ([2]int, error) {
 	var result [2]int
 	err := v.call("window_get_cursor", &result, window)
 	return result, err
 }
 
+// WindowCursor returns the cursor position in the window.
 func (p *Pipeline) WindowCursor(window Window, result *[2]int) {
 	p.call("window_get_cursor", result, window)
 }
 
+// SetWindowCursor sets the cursor position in the window to the given position.
 func (v *Vim) SetWindowCursor(window Window, pos [2]int) error {
 	return v.call("window_set_cursor", nil, window, pos)
 }
 
+// SetWindowCursor sets the cursor position in the window to the given position.
 func (p *Pipeline) SetWindowCursor(window Window, pos [2]int) {
 	p.call("window_set_cursor", nil, window, pos)
 }
 
+// WindowHeight returns the window height.
 func (v *Vim) WindowHeight(window Window) (int, error) {
 	var result int
 	err := v.call("window_get_height", &result, window)
 	return result, err
 }
 
+// WindowHeight returns the window height.
 func (p *Pipeline) WindowHeight(window Window, result *int) {
 	p.call("window_get_height", result, window)
 }
 
+// SetWindowHeight sets the window height.
 func (v *Vim) SetWindowHeight(window Window, height int) error {
 	return v.call("window_set_height", nil, window, height)
 }
 
+// SetWindowHeight sets the window height.
 func (p *Pipeline) SetWindowHeight(window Window, height int) {
 	p.call("window_set_height", nil, window, height)
 }
 
+// WindowWidth returns the window width.
 func (v *Vim) WindowWidth(window Window) (int, error) {
 	var result int
 	err := v.call("window_get_width", &result, window)
 	return result, err
 }
 
+// WindowWidth returns the window width.
 func (p *Pipeline) WindowWidth(window Window, result *int) {
 	p.call("window_get_width", result, window)
 }
 
+// SetWindowWidth sets the window width.
 func (v *Vim) SetWindowWidth(window Window, width int) error {
 	return v.call("window_set_width", nil, window, width)
 }
 
+// SetWindowWidth sets the window width.
 func (p *Pipeline) SetWindowWidth(window Window, width int) {
 	p.call("window_set_width", nil, window, width)
 }
 
+// WindowVar gets a window-scoped (w:) variable.
 func (v *Vim) WindowVar(window Window, name string, result interface{}) error {
 	return v.call("window_get_var", result, window, name)
 }
 
+// WindowVar gets a window-scoped (w:) variable.
 func (p *Pipeline) WindowVar(window Window, name string, result interface{}) {
 	p.call("window_get_var", result, window, name)
 }
 
+// SetWindowVar sets a window-scoped (w:) variable.
 func (v *Vim) SetWindowVar(window Window, name string, value interface{}, result interface{}) error {
 	return v.call("window_set_var", result, window, name, value)
 }
 
+// SetWindowVar sets a window-scoped (w:) variable.
 func (p *Pipeline) SetWindowVar(window Window, name string, value interface{}, result interface{}) {
 	p.call("window_set_var", result, window, name, value)
 }
 
+// WindowOption gets a window option.
 func (v *Vim) WindowOption(window Window, name string, result interface{}) error {
 	return v.call("window_get_option", result, window, name)
 }
 
+// WindowOption gets a window option.
 func (p *Pipeline) WindowOption(window Window, name string, result interface{}) {
 	p.call("window_get_option", result, window, name)
 }
 
+// SetWindowOption sets a window option.
 func (v *Vim) SetWindowOption(window Window, name string, value interface{}) error {
 	return v.call("window_set_option", nil, window, name, value)
 }
 
+// SetWindowOption sets a window option.
 func (p *Pipeline) SetWindowOption(window Window, name string, value interface{}) {
 	p.call("window_set_option", nil, window, name, value)
 }
 
+// WindowPosition gets the window position in display cells. First position is zero.
 func (v *Vim) WindowPosition(window Window) ([2]int, error) {
 	var result [2]int
 	err := v.call("window_get_position", &result, window)
 	return result, err
 }
 
+// WindowPosition gets the window position in display cells. First position is zero.
 func (p *Pipeline) WindowPosition(window Window, result *[2]int) {
 	p.call("window_get_position", result, window)
 }
 
+// WindowTabpage gets the tab page that contains the window.
 func (v *Vim) WindowTabpage(window Window) (Tabpage, error) {
 	var result Tabpage
 	err := v.call("window_get_tabpage", &result, window)
 	return result, err
 }
 
+// WindowTabpage gets the tab page that contains the window.
 func (p *Pipeline) WindowTabpage(window Window, result *Tabpage) {
 	p.call("window_get_tabpage", result, window)
 }
 
+// IsWindowValid returns true if the window is valid.
 func (v *Vim) IsWindowValid(window Window) (bool, error) {
 	var result bool
 	err := v.call("window_is_valid", &result, window)
 	return result, err
 }
 
+// IsWindowValid returns true if the window is valid.
 func (p *Pipeline) IsWindowValid(window Window, result *bool) {
 	p.call("window_is_valid", result, window)
 }

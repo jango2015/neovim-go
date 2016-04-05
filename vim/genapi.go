@@ -57,6 +57,7 @@ var methods = []*struct {
 		Params: []param{{"buffer", "Buffer"}, {"index", "int"}},
 		Doc: `
 // BufferLine returns the line at the given index.
+//
 // Deprecated: use BufferLines instead.
 //     for positive indices (including 0) use
 //         "BufferLines(buffer, index, index+1, true)"
@@ -70,6 +71,7 @@ var methods = []*struct {
 		Params: []param{{"buffer", "Buffer"}, {"index", "int"}, {"line", "[]byte"}},
 		Doc: `
 // SetBufferLine sets the line at the given index.
+//
 // Deprecated: use SetBufferLines instead.
 //     for positive indices use
 //         "SetBufferLines(buffer, index, index+1, true, [lines])"
@@ -83,6 +85,7 @@ var methods = []*struct {
 		Params: []param{{"buffer", "Buffer"}, {"index", "int"}},
 		Doc: `
 // DeleteBufferLine deletes the line at the given index.
+//
 // Deprecated: use SetBufferLines instead.
 //     for positive indices use
 //         "SetBufferLines(buffer, index, index+1, true, [])"
@@ -98,6 +101,7 @@ var methods = []*struct {
 		Params: []param{{"buffer", "Buffer"}, {"start", "int"}, {"end", "int"}, {"includeStart", "bool"}, {"includeEnd", "bool"}},
 		Doc: `
 // BufferLineSlice retrieves a line range from a buffer.
+//
 // Deprecated: use BufferLines(buffer, newstart, newend, strictIndexing)
 //     newstart = start + int(not includeStart) - int(start < 0)
 //     newend = end + int(includeEnd) - int(end < 0)
@@ -110,6 +114,7 @@ var methods = []*struct {
 		Params: []param{{"buffer", "Buffer"}, {"start", "int"}, {"end", "int"}, {"includeStart", "bool"}, {"includeEnd", "bool"}, {"replacement", "[][]byte"}},
 		Doc: `
 // SetBufferLineSlice replaces a line range on a buffer.
+//
 // Deprecated: use SetBufferLines(buffer, newstart, newend, false, lines)
 //     newstart = start + int(not includeStart) + int(start < 0)
 //     newend = end + int(includeEnd) + int(end < 0)
@@ -120,32 +125,34 @@ var methods = []*struct {
 		Name:   "BufferLines",
 		Sm:     "buffer_get_lines",
 		Return: "[][]byte",
-		Params: []param{{"buffer", "Buffer"}, {"start", "int"}, {"end", "int"}, {"strictIndexing", "bool"}},
+		Params: []param{{"buffer", "Buffer"}, {"start", "int"}, {"end", "int"}, {"strict", "bool"}},
 		Doc: `
 // BufferLines retrieves a line range from a buffer.
-// Indexing is zero-based, end-exclusive. Negative indices are interpreted
-// as length+1+index, i e -1 refers to the index past the end. So to get the
-// last element set start=-2 and end=-1.
 //
-// Out-of-bounds indices are clamped to the nearest valid value, unless
-// strict_indexing is set.
+// Indexing is zero-based, end-exclusive. Negative indices are interpreted as
+// length+1+index, i e -1 refers to the index past the end. So to get the last
+// element set start=-2 and end=-1.
+//
+// Out-of-bounds indices are clamped to the nearest valid value, unless strict
+// = true.
 `,
 	},
 	{
 		Name:   "SetBufferLines",
 		Sm:     "buffer_set_lines",
-		Params: []param{{"buffer", "Buffer"}, {"start", "int"}, {"end", "int"}, {"strictIndexing", "bool"}, {"replacement", "[][]byte"}},
+		Params: []param{{"buffer", "Buffer"}, {"start", "int"}, {"end", "int"}, {"strict", "bool"}, {"replacement", "[][]byte"}},
 		Doc: `
 // SetBufferLines replaces a line range on a buffer.
-// Indexing is zero-based, end-exclusive. Negative indices are interpreted
-// as length+1+index, i e -1 refers to the index past the end. So to change
-// or delete the last element set start=-2 and end=-1.
+//
+// Indexing is zero-based, end-exclusive. Negative indices are interpreted as
+// length+1+index, ie -1 refers to the index past the end. So to change or
+// delete the last element set start=-2 and end=-1.
 //
 // To insert lines at a given index, set both start and end to the same index.
 // To delete a range of lines, set replacement to an empty array.
 //
-// Out-of-bounds indices are clamped to the nearest valid value, unless
-// strict_indexing is set.
+// Out-of-bounds indices are clamped to the nearest valid value, unless strict
+// = true.
 `,
 	},
 	{
@@ -217,6 +224,7 @@ var methods = []*struct {
 		Params: []param{{"buffer", "Buffer"}, {"lnum", "int"}, {"lines", "[][]byte"}},
 		Doc: `
 // InsertBUffer inserts a range of lines to a buffer at the specified index.
+//
 // Deprecated: use SetBufferLines(buffer, lnum, lnum, true, lines)
 `,
 	},
@@ -278,41 +286,44 @@ var methods = []*struct {
 		Sm:     "tabpage_get_windows",
 		Return: "[]Window",
 		Params: []param{{"tabpage", "Tabpage"}},
+		Doc:    `// TabpageWindows returns the windows in a tabpage.`,
 	},
 	{
 		Name:   "TabpageVar",
 		Sm:     "tabpage_get_var",
 		Return: "interface{}",
 		Params: []param{{"tabpage", "Tabpage"}, {"name", "string"}},
+		Doc:    `// TabpageVar gets a tab-scoped (t:) variable.`,
 	},
 	{
 		Name:   "SetTabpageVar",
 		Sm:     "tabpage_set_var",
 		Return: "interface{}",
 		Params: []param{{"tabpage", "Tabpage"}, {"name", "string"}, {"value", "interface{}"}},
+		Doc:    `// SetTabpageVar isets a tab-scoped (t:) variable. A nil value deletes the variable.`,
 	},
 	{
 		Name:   "TabpageWindow",
 		Sm:     "tabpage_get_window",
 		Return: "Window",
 		Params: []param{{"tabpage", "Tabpage"}},
+		Doc:    `// TabpageWindow gets the current window in a tab page.`,
 	},
 	{
 		Name:   "IsTabpageValid",
 		Sm:     "tabpage_is_valid",
 		Return: "bool",
 		Params: []param{{"tabpage", "Tabpage"}},
+		Doc:    `// IsTabpageValid checks if a tab page is valid.`,
 	},
 	{
 		Name:   "Command",
 		Sm:     "vim_command",
 		Params: []param{{"str", "string"}},
-		Doc: `
-// Command executes a single ex command.
-`,
+		Doc:    `// Command executes a single ex command.`,
 	},
 	{
-		Name:   "Feedkeys",
+		Name:   "FeedKeys",
 		Sm:     "vim_feedkeys",
 		Params: []param{{"keys", "string"}, {"mode", "string"}, {"escapeCsi", "bool"}},
 		Doc: `
@@ -422,7 +433,7 @@ var methods = []*struct {
 		Sm:     "vim_get_var",
 		Return: "interface{}",
 		Params: []param{{"name", "string"}},
-		Doc:    `// Var gets a global variable.`,
+		Doc:    `// Var gets a global (g:) variable.`,
 	},
 	{
 		Name:   "SetVar",
@@ -430,8 +441,8 @@ var methods = []*struct {
 		Return: "interface{}",
 		Params: []param{{"name", "string"}, {"value", "interface{}"}},
 		Doc: `
-// SetVar sets a global variable. The value nil deletes the variable. Result is
-// the previous value of the variable.
+// SetVar sets a global (g:) variable. The value nil deletes the variable.
+// Result is the previous value of the variable.
 `,
 	},
 	{
@@ -439,7 +450,7 @@ var methods = []*struct {
 		Sm:     "vim_get_vvar",
 		Return: "interface{}",
 		Params: []param{{"name", "string"}},
-		Doc:    `// Vvar gets a vim variable.`,
+		Doc:    `// Vvar gets a vim (v:) variable.`,
 	},
 	{
 		Name:   "Option",
@@ -468,7 +479,7 @@ var methods = []*struct {
 		Sm:     "vim_err_write",
 		Params: []param{{"str", "string"}},
 		Doc: `
-// WriteOut writes a message to vim error buffer. The string is split and
+// WriteErr writes a message to vim error buffer. The string is split and
 // flushed after each newline. Incomplete lines are kept for writing later.
 `,
 	},
@@ -482,46 +493,55 @@ var methods = []*struct {
 		Name:   "Buffers",
 		Sm:     "vim_get_buffers",
 		Return: "[]Buffer",
+		Doc:    `// Buffers returns the current list of buffers.`,
 	},
 	{
 		Name:   "CurrentBuffer",
 		Sm:     "vim_get_current_buffer",
 		Return: "Buffer",
+		Doc:    `// CurrentBuffer returns the current buffer.`,
 	},
 	{
 		Name:   "SetCurrentBuffer",
 		Sm:     "vim_set_current_buffer",
 		Params: []param{{"buffer", "Buffer"}},
+		Doc:    `// SetCurrentBuffer sets the current buffer.`,
 	},
 	{
 		Name:   "Windows",
 		Sm:     "vim_get_windows",
 		Return: "[]Window",
+		Doc:    `// Windows returns the current list of windows.`,
 	},
 	{
 		Name:   "CurrentWindow",
 		Sm:     "vim_get_current_window",
 		Return: "Window",
+		Doc:    `// CurrentWindow returns the current window.`,
 	},
 	{
 		Name:   "SetCurrentWindow",
 		Sm:     "vim_set_current_window",
 		Params: []param{{"window", "Window"}},
+		Doc:    `// SetCurrentWindow sets the current window.`,
 	},
 	{
 		Name:   "Tabpages",
 		Sm:     "vim_get_tabpages",
 		Return: "[]Tabpage",
+		Doc:    `// Tabpages returns the current list of tabpages.`,
 	},
 	{
 		Name:   "CurrentTabpage",
 		Sm:     "vim_get_current_tabpage",
 		Return: "Tabpage",
+		Doc:    `// CurrentTabpage returns the current tabpage.`,
 	},
 	{
 		Name:   "SetCurrentTabpage",
 		Sm:     "vim_set_current_tabpage",
 		Params: []param{{"tabpage", "Tabpage"}},
+		Doc:    `// SetCurrentTabpage sets the current tabpage.`,
 	},
 	{
 		Name:   "Subscribe",
@@ -556,80 +576,94 @@ var methods = []*struct {
 		Sm:     "window_get_buffer",
 		Return: "Buffer",
 		Params: []param{{"window", "Window"}},
+		Doc:    `// WindowBuffer returns the current buffer in a window.`,
 	},
 	{
 		Name:   "WindowCursor",
 		Sm:     "window_get_cursor",
 		Return: "[2]int",
 		Params: []param{{"window", "Window"}},
+		Doc:    `// WindowCursor returns the cursor position in the window.`,
 	},
 	{
 		Name:   "SetWindowCursor",
 		Sm:     "window_set_cursor",
 		Params: []param{{"window", "Window"}, {"pos", "[2]int"}},
+		Doc:    `// SetWindowCursor sets the cursor position in the window to the given position.`,
 	},
 	{
 		Name:   "WindowHeight",
 		Sm:     "window_get_height",
 		Return: "int",
 		Params: []param{{"window", "Window"}},
+		Doc:    `// WindowHeight returns the window height.`,
 	},
 	{
 		Name:   "SetWindowHeight",
 		Sm:     "window_set_height",
 		Params: []param{{"window", "Window"}, {"height", "int"}},
+		Doc:    `// SetWindowHeight sets the window height.`,
 	},
 	{
 		Name:   "WindowWidth",
 		Sm:     "window_get_width",
 		Return: "int",
 		Params: []param{{"window", "Window"}},
+		Doc:    `// WindowWidth returns the window width.`,
 	},
 	{
 		Name:   "SetWindowWidth",
 		Sm:     "window_set_width",
 		Params: []param{{"window", "Window"}, {"width", "int"}},
+		Doc:    `// SetWindowWidth sets the window width.`,
 	},
 	{
 		Name:   "WindowVar",
 		Sm:     "window_get_var",
 		Return: "interface{}",
 		Params: []param{{"window", "Window"}, {"name", "string"}},
+		Doc:    `// WindowVar gets a window-scoped (w:) variable.`,
 	},
 	{
 		Name:   "SetWindowVar",
 		Sm:     "window_set_var",
 		Return: "interface{}",
 		Params: []param{{"window", "Window"}, {"name", "string"}, {"value", "interface{}"}},
+		Doc:    `// SetWindowVar sets a window-scoped (w:) variable.`,
 	},
 	{
 		Name:   "WindowOption",
 		Sm:     "window_get_option",
 		Return: "interface{}",
 		Params: []param{{"window", "Window"}, {"name", "string"}},
+		Doc:    `// WindowOption gets a window option.`,
 	},
 	{
 		Name:   "SetWindowOption",
 		Sm:     "window_set_option",
 		Params: []param{{"window", "Window"}, {"name", "string"}, {"value", "interface{}"}},
+		Doc:    `// SetWindowOption sets a window option.`,
 	},
 	{
 		Name:   "WindowPosition",
 		Sm:     "window_get_position",
 		Return: "[2]int",
 		Params: []param{{"window", "Window"}},
+		Doc:    `// WindowPosition gets the window position in display cells. First position is zero.`,
 	},
 	{
 		Name:   "WindowTabpage",
 		Sm:     "window_get_tabpage",
 		Return: "Tabpage",
 		Params: []param{{"window", "Window"}},
+		Doc:    `// WindowTabpage gets the tab page that contains the window.`,
 	},
 	{
 		Name:   "IsWindowValid",
 		Sm:     "window_is_valid",
 		Return: "bool",
 		Params: []param{{"window", "Window"}},
+		Doc:    `// IsWindowValid returns true if the window is valid.`,
 	},
 }
 
