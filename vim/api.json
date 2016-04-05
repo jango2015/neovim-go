@@ -346,6 +346,62 @@
         {
             "async": false,
             "can_fail": true,
+            "name": "buffer_add_highlight",
+            "parameters": [
+                [
+                    "Buffer",
+                    "buffer"
+                ],
+                [
+                    "Integer",
+                    "src_id"
+                ],
+                [
+                    "String",
+                    "hl_group"
+                ],
+                [
+                    "Integer",
+                    "line"
+                ],
+                [
+                    "Integer",
+                    "col_start"
+                ],
+                [
+                    "Integer",
+                    "col_end"
+                ]
+            ],
+            "return_type": "Integer"
+        },
+        {
+            "async": false,
+            "can_fail": true,
+            "name": "buffer_clear_highlight",
+            "parameters": [
+                [
+                    "Buffer",
+                    "buffer"
+                ],
+                [
+                    "Integer",
+                    "src_id"
+                ],
+                [
+                    "Integer",
+                    "line_start"
+                ],
+                [
+                    "Integer",
+                    "line_end"
+                ]
+            ],
+            "return_type": "void"
+        },
+        {
+            "async": false,
+            "can_fail": true,
             "name": "tabpage_get_windows",
             "parameters": [
                 [

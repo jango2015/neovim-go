@@ -228,6 +228,52 @@ var methods = []*struct {
 		Doc:    `// BufferMark returns the (row,col) of the named mark.`,
 	},
 	{
+		Name:   "AddBufferHighlight",
+		Sm:     "buffer_add_highlight",
+		Return: "int",
+		Params: []param{{"buffer", "Buffer"}, {"srcID", "int"}, {"hlGroup", "string"}, {"line", "int"}, {"startCol", "int"}, {"endCol", "int"}},
+		Doc: `
+// AddBufferHighlight adds a highlight to buffer and returns the source id of
+// the highlight.
+//
+// AddBufferHighlight can be used for plugins which dynamically generate
+// highlights to a buffer (like a semantic highlighter or linter). The function
+// adds a single highlight to a buffer. Unlike matchaddpos() highlights follow
+// changes to line numbering (as lines are inserted/removed above the
+// highlighted line), like signs and marks do.
+//
+// The srcID is useful for batch deletion/updating of a set of highlights. When
+// called with srcID = 0, an unique source id is generated and returned.
+// Succesive calls can pass in it as srcID to add new highlights to the same
+// source group. All highlights in the same group can then be cleared with
+// ClearBufferHighlight. If the highlight never will be manually deleted pass
+// in -1 for srcID.
+//
+// If hlGroup is the empty string no highlight is added, but a new srcID is
+// still returned. This is useful for an external plugin to synchrounously
+// request an unique srcID at initialization, and later asynchronously add and
+// clear highlights in response to buffer changes.
+//
+// The startCol and endCol parameters specify the range of columns to
+// highlight. Use endCol = -1 to highlight to the end of the line.
+`,
+	},
+	{
+		Name:   "ClearBufferHighlight",
+		Sm:     " buffer_clear_highlight",
+		Params: []param{{"buffer", "Buffer"}, {"srcID", "int"}, {"startLine", "int"}, {"endLine", "int"}},
+		Doc: `
+// ClearBufferHighlight clears highlights from a given source group and a range
+// of lines.
+//
+// To clear a source group in the entire buffer, pass in 1 and -1 to startLine
+// and endLine respectively.
+//
+// The lineStart and lineEnd parameters specify the range of lines to clear.
+// The end of range is exclusive. Specify -1 to clear to the end of the file.
+`,
+	},
+	{
 		Name:   "TabpageWindows",
 		Sm:     "tabpage_get_windows",
 		Return: "[]Window",

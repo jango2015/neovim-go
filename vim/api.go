@@ -390,6 +390,86 @@ func (p *Pipeline) BufferMark(buffer Buffer, name string, result *[2]int) {
 	p.call("buffer_get_mark", result, buffer, name)
 }
 
+// AddBufferHighlight adds a highlight to buffer and returns the source id of
+// the highlight.
+//
+// AddBufferHighlight can be used for plugins which dynamically generate
+// highlights to a buffer (like a semantic highlighter or linter). The function
+// adds a single highlight to a buffer. Unlike matchaddpos() highlights follow
+// changes to line numbering (as lines are inserted/removed above the
+// highlighted line), like signs and marks do.
+//
+// The srcID is useful for batch deletion/updating of a set of highlights. When
+// called with srcID = 0, an unique source id is generated and returned.
+// Succesive calls can pass in it as srcID to add new highlights to the same
+// source group. All highlights in the same group can then be cleared with
+// ClearBufferHighlight. If the highlight never will be manually deleted pass
+// in -1 for srcID.
+//
+// If hlGroup is the empty string no highlight is added, but a new srcID is
+// still returned. This is useful for an external plugin to synchrounously
+// request an unique srcID at initialization, and later asynchronously add and
+// clear highlights in response to buffer changes.
+//
+// The startCol and endCol parameters specify the range of columns to
+// highlight. Use endCol = -1 to highlight to the end of the line.
+func (v *Vim) AddBufferHighlight(buffer Buffer, srcID int, hlGroup string, line int, startCol int, endCol int) (int, error) {
+	var result int
+	err := v.call("buffer_add_highlight", &result, buffer, srcID, hlGroup, line, startCol, endCol)
+	return result, err
+}
+
+// AddBufferHighlight adds a highlight to buffer and returns the source id of
+// the highlight.
+//
+// AddBufferHighlight can be used for plugins which dynamically generate
+// highlights to a buffer (like a semantic highlighter or linter). The function
+// adds a single highlight to a buffer. Unlike matchaddpos() highlights follow
+// changes to line numbering (as lines are inserted/removed above the
+// highlighted line), like signs and marks do.
+//
+// The srcID is useful for batch deletion/updating of a set of highlights. When
+// called with srcID = 0, an unique source id is generated and returned.
+// Succesive calls can pass in it as srcID to add new highlights to the same
+// source group. All highlights in the same group can then be cleared with
+// ClearBufferHighlight. If the highlight never will be manually deleted pass
+// in -1 for srcID.
+//
+// If hlGroup is the empty string no highlight is added, but a new srcID is
+// still returned. This is useful for an external plugin to synchrounously
+// request an unique srcID at initialization, and later asynchronously add and
+// clear highlights in response to buffer changes.
+//
+// The startCol and endCol parameters specify the range of columns to
+// highlight. Use endCol = -1 to highlight to the end of the line.
+func (p *Pipeline) AddBufferHighlight(buffer Buffer, srcID int, hlGroup string, line int, startCol int, endCol int, result *int) {
+	p.call("buffer_add_highlight", result, buffer, srcID, hlGroup, line, startCol, endCol)
+}
+
+// ClearBufferHighlight clears highlights from a given source group and a range
+// of lines.
+//
+// To clear a source group in the entire buffer, pass in 1 and -1 to startLine
+// and endLine respectively.
+//
+// The lineStart and lineEnd parameters specify the range of lines to clear.
+// The end of range is exclusive. Specify -1 to clear to the end of the file.
+func (v *Vim) ClearBufferHighlight(buffer Buffer, srcID int, startLine int, endLine int) error {
+	return v.call(" buffer_clear_highlight", nil, buffer, srcID, startLine, endLine)
+}
+
+// ClearBufferHighlight clears highlights from a given source group and a range
+// of lines.
+//
+// To clear a source group in the entire buffer, pass in 1 and -1 to startLine
+// and endLine respectively.
+//
+// The lineStart and lineEnd parameters specify the range of lines to clear.
+// The end of range is exclusive. Specify -1 to clear to the end of the file.
+func (p *Pipeline) ClearBufferHighlight(buffer Buffer, srcID int, startLine int, endLine int) {
+	p.call(" buffer_clear_highlight", nil, buffer, srcID, startLine, endLine)
+}
+
 func (v *Vim) TabpageWindows(tabpage Tabpage) ([]Window, error) {
 	var result []Window
 	err := v.call("tabpage_get_windows", &result, tabpage)
