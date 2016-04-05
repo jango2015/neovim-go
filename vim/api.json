@@ -103,6 +103,30 @@
         {
             "async": false,
             "can_fail": true,
+            "name": "buffer_get_lines",
+            "parameters": [
+                [
+                    "Buffer",
+                    "buffer"
+                ],
+                [
+                    "Integer",
+                    "start"
+                ],
+                [
+                    "Integer",
+                    "end"
+                ],
+                [
+                    "Boolean",
+                    "strict_indexing"
+                ]
+            ],
+            "return_type": "ArrayOf(String)"
+        },
+        {
+            "async": false,
+            "can_fail": true,
             "name": "buffer_set_line_slice",
             "parameters": [
                 [
@@ -124,6 +148,34 @@
                 [
                     "Boolean",
                     "include_end"
+                ],
+                [
+                    "ArrayOf(String)",
+                    "replacement"
+                ]
+            ],
+            "return_type": "void"
+        },
+        {
+            "async": false,
+            "can_fail": true,
+            "name": "buffer_set_lines",
+            "parameters": [
+                [
+                    "Buffer",
+                    "buffer"
+                ],
+                [
+                    "Integer",
+                    "start"
+                ],
+                [
+                    "Integer",
+                    "end"
+                ],
+                [
+                    "Boolean",
+                    "strict_indexing"
                 ],
                 [
                     "ArrayOf(String)",

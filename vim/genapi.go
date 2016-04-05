@@ -55,32 +55,98 @@ var methods = []*struct {
 		Sm:     "buffer_get_line",
 		Return: "[]byte",
 		Params: []param{{"buffer", "Buffer"}, {"index", "int"}},
-		Doc:    `// BufferLine returns the line at the given index.`,
+		Doc: `
+// BufferLine returns the line at the given index.
+// Deprecated: use BufferLines instead.
+//     for positive indices (including 0) use
+//         "BufferLines(buffer, index, index+1, true)"
+//     for negative indices use
+//         "BufferLines(buffer, index-1, index, true)"
+`,
 	},
 	{
 		Name:   "SetBufferLine",
 		Sm:     "buffer_set_line",
 		Params: []param{{"buffer", "Buffer"}, {"index", "int"}, {"line", "[]byte"}},
-		Doc:    `// SetBufferLine sets the line at the given index.`,
+		Doc: `
+// SetBufferLine sets the line at the given index.
+// Deprecated: use SetBufferLines instead.
+//     for positive indices use
+//         "SetBufferLines(buffer, index, index+1, true, [lines])"
+//     for negative indices use
+//         "SetBufferLines(buffer, index-1, index, true, [lines])"
+`,
 	},
 	{
 		Name:   "DeleteBufferLine",
 		Sm:     "buffer_del_line",
 		Params: []param{{"buffer", "Buffer"}, {"index", "int"}},
-		Doc:    `// DeleteBufferLine deletes the line at the given index.`,
+		Doc: `
+// DeleteBufferLine deletes the line at the given index.
+// Deprecated: use SetBufferLines instead.
+//     for positive indices use
+//         "SetBufferLines(buffer, index, index+1, true, [])"
+//     for negative indices use
+//         "SetBufferLines(buffer, index-1, index, true, [])"
+
+`,
 	},
 	{
 		Name:   "BufferLineSlice",
 		Sm:     "buffer_get_line_slice",
 		Return: "[][]byte",
 		Params: []param{{"buffer", "Buffer"}, {"start", "int"}, {"end", "int"}, {"includeStart", "bool"}, {"includeEnd", "bool"}},
-		Doc:    `// BufferLineSlice retrieves a line range from a buffer.`,
+		Doc: `
+// BufferLineSlice retrieves a line range from a buffer.
+// Deprecated: use BufferLines(buffer, newstart, newend, strictIndexing)
+//     newstart = start + int(not includeStart) - int(start < 0)
+//     newend = end + int(includeEnd) - int(end < 0)
+//     int(bool) = 1 if bool is true else 0
+`,
 	},
 	{
 		Name:   "SetBufferLineSlice",
 		Sm:     "buffer_set_line_slice",
 		Params: []param{{"buffer", "Buffer"}, {"start", "int"}, {"end", "int"}, {"includeStart", "bool"}, {"includeEnd", "bool"}, {"replacement", "[][]byte"}},
-		Doc:    `// SetBufferLineSlice replaces a line range on a buffer.`,
+		Doc: `
+// SetBufferLineSlice replaces a line range on a buffer.
+// Deprecated: use SetBufferLines(buffer, newstart, newend, false, lines)
+//     newstart = start + int(not includeStart) + int(start < 0)
+//     newend = end + int(includeEnd) + int(end < 0)
+//     int(bool) = 1 if bool is true else 0
+`,
+	},
+	{
+		Name:   "BufferLines",
+		Sm:     "buffer_get_lines",
+		Return: "[][]byte",
+		Params: []param{{"buffer", "Buffer"}, {"start", "int"}, {"end", "int"}, {"strictIndexing", "bool"}},
+		Doc: `
+// BufferLines retrieves a line range from a buffer.
+// Indexing is zero-based, end-exclusive. Negative indices are interpreted
+// as length+1+index, i e -1 refers to the index past the end. So to get the
+// last element set start=-2 and end=-1.
+//
+// Out-of-bounds indices are clamped to the nearest valid value, unless
+// strict_indexing is set.
+`,
+	},
+	{
+		Name:   "SetBufferLines",
+		Sm:     "buffer_set_lines",
+		Params: []param{{"buffer", "Buffer"}, {"start", "int"}, {"end", "int"}, {"strictIndexing", "bool"}, {"replacement", "[][]byte"}},
+		Doc: `
+// SetBufferLines replaces a line range on a buffer.
+// Indexing is zero-based, end-exclusive. Negative indices are interpreted
+// as length+1+index, i e -1 refers to the index past the end. So to change
+// or delete the last element set start=-2 and end=-1.
+//
+// To insert lines at a given index, set both start and end to the same index.
+// To delete a range of lines, set replacement to an empty array.
+//
+// Out-of-bounds indices are clamped to the nearest valid value, unless
+// strict_indexing is set.
+`,
 	},
 	{
 		Name:   "BufferVar",
@@ -149,7 +215,10 @@ var methods = []*struct {
 		Name:   "InsertBuffer",
 		Sm:     "buffer_insert",
 		Params: []param{{"buffer", "Buffer"}, {"lnum", "int"}, {"lines", "[][]byte"}},
-		Doc:    `// InsertBUffer inserts a range of lines to a buffer at the specified index.`,
+		Doc: `
+// InsertBUffer inserts a range of lines to a buffer at the specified index.
+// Deprecated: use SetBufferLines(buffer, lnum, lnum, true, lines)
+`,
 	},
 	{
 		Name:   "BufferMark",
