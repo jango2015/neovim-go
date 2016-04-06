@@ -9,9 +9,13 @@
 package vim
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"os"
+	"os/exec"
 	"sync"
+	"time"
 
 	"github.com/garyburd/neovim-go/msgpack/rpc"
 )
@@ -24,6 +28,9 @@ type Vim struct {
 	ep        *rpc.Endpoint
 	mu        sync.Mutex
 	channelID int
+
+	// close is a hook for closing embedded Neovim process.
+	close func() error
 }
 
 // Serve runs the MessagePack RPC server loop.
@@ -33,7 +40,14 @@ func (v *Vim) Serve() error {
 
 // Close closes the client.
 func (v *Vim) Close() error {
-	return v.ep.Close()
+	err := v.ep.Close()
+	if v.close != nil {
+		errc := v.close()
+		if err == nil {
+			err = errc
+		}
+	}
+	return err
 }
 
 // New create a Neovim client. When connecting to Neovim over stdio, use stdin
@@ -53,6 +67,119 @@ func New(r io.Reader, wc io.WriteCloser, logf func(string, ...interface{})) (*Vi
 	v.ep, err = rpc.NewEndpoint(rwc, withExtensions(), rpc.WithLogf(logf), rpc.WithFirstArg(v))
 	if err != nil {
 		return nil, err
+	}
+
+	return v, nil
+}
+
+// EmbedOptions specifies options for starting an embedded instance of Neovim.
+type EmbedOptions struct {
+	// Args specifies the command line arguments. Do not include the program
+	// name (the first argument) or the --embed option.
+	Args []string
+
+	// Dir specifies the working directory of the command. The working
+	// directory in the current process is sued if Dir is "".
+	Dir string
+
+	// Env specifies the environment of the Neovim process. The current process
+	// environment is used if Env is nil.
+	Env []string
+
+	// Path is the path of the command to run. If Path = "", then
+	// StartEmbeddedVim searches for "nvim" on $PATH.
+	Path string
+
+	Logf func(string, ...interface{})
+}
+
+// StartEmbeddedVim starts an embedded instance of Neovim using the specified
+// arguments.
+func StartEmbeddedVim(options *EmbedOptions) (*Vim, error) {
+	var closeOnExit []io.Closer
+	defer func() {
+		for _, c := range closeOnExit {
+			c.Close()
+		}
+	}()
+
+	if options == nil {
+		options = &EmbedOptions{}
+	}
+
+	path := options.Path
+	if path == "" {
+		var err error
+		path, err = exec.LookPath("nvim")
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	outr, outw, err := os.Pipe()
+	if err != nil {
+		return nil, err
+	}
+	closeOnExit = append(closeOnExit, outr, outw)
+
+	inr, inw, err := os.Pipe()
+	if err != nil {
+		return nil, err
+	}
+	closeOnExit = append(closeOnExit, inr, inw)
+
+	v := &Vim{}
+	rwc := struct {
+		io.Reader
+		io.WriteCloser
+	}{outr, inw}
+
+	v.ep, err = rpc.NewEndpoint(rwc, withExtensions(), rpc.WithLogf(options.Logf), rpc.WithFirstArg(v))
+	if err != nil {
+		return nil, err
+	}
+	closeOnExit = append(closeOnExit, v.ep)
+
+	p, err := os.StartProcess(path,
+		append([]string{path, "--embed"}, options.Args...),
+		&os.ProcAttr{
+			Env:   options.Env,
+			Files: []*os.File{inr, outw},
+		})
+	if err != nil {
+		return nil, err
+	}
+
+	closeOnExit = nil
+	outw.Close()
+	inr.Close()
+
+	done := make(chan error, 1)
+	go func() {
+		done <- v.Serve()
+		outr.Close()
+		inw.Close()
+	}()
+
+	v.close = func() error {
+		var errServe error
+		select {
+		case errServe = <-done:
+		case <-time.After(5 * time.Second):
+			p.Kill()
+			errServe = errors.New("timeout waiting for nvim to exit")
+		}
+		state, err := p.Wait()
+		if errServe != nil {
+			return errServe
+		}
+		if err != nil {
+			return err
+		}
+		if !state.Success() {
+			return fmt.Errorf("%s", state)
+		}
+		return nil
 	}
 
 	return v, nil

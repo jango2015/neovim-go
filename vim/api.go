@@ -380,14 +380,14 @@ func (p *Pipeline) IsBufferValid(buffer Buffer, result *bool) {
 	p.call("buffer_is_valid", result, buffer)
 }
 
-// InsertBUffer inserts a range of lines to a buffer at the specified index.
+// InsertBuffer inserts a range of lines to a buffer at the specified index.
 //
 // Deprecated: use SetBufferLines(buffer, lnum, lnum, true, lines)
 func (v *Vim) InsertBuffer(buffer Buffer, lnum int, lines [][]byte) error {
 	return v.call("buffer_insert", nil, buffer, lnum, lines)
 }
 
-// InsertBUffer inserts a range of lines to a buffer at the specified index.
+// InsertBuffer inserts a range of lines to a buffer at the specified index.
 //
 // Deprecated: use SetBufferLines(buffer, lnum, lnum, true, lines)
 func (p *Pipeline) InsertBuffer(buffer Buffer, lnum int, lines [][]byte) {

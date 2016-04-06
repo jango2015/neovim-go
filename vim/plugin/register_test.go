@@ -5,11 +5,11 @@
 package plugin_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/garyburd/neovim-go/vim"
 	"github.com/garyburd/neovim-go/vim/plugin"
-	"github.com/garyburd/neovim-go/vim/vimtest"
 )
 
 func init() {
@@ -19,12 +19,31 @@ func init() {
 }
 
 func TestRegister(t *testing.T) {
-	v, cleanup := vimtest.New(t, true)
-	defer cleanup()
+	v, err := vim.StartEmbeddedVim(&vim.EmbedOptions{
+		Args: []string{"-u", "NONE", "-n"},
+		Env:  []string{},
+		Logf: t.Logf,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer v.Close()
+
+	if err := plugin.RegisterHandlers(v, "x"); err != nil {
+		t.Fatal(err)
+	}
 
 	cid, err := v.ChannelID()
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if err := v.Command(fmt.Sprintf(":call remote#host#RegisterPlugin('nvimgo', 'x', rpcrequest(%d, 'specs', 'x'))", cid)); err != nil {
+		t.Error(err)
+	}
+
+	if err := v.Command(fmt.Sprintf(":call remote#host#Register('nvimgo', 'x', %d)", cid)); err != nil {
+		t.Error(err)
 	}
 
 	{

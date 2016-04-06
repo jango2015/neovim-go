@@ -223,7 +223,7 @@ var methods = []*struct {
 		Sm:     "buffer_insert",
 		Params: []param{{"buffer", "Buffer"}, {"lnum", "int"}, {"lines", "[][]byte"}},
 		Doc: `
-// InsertBUffer inserts a range of lines to a buffer at the specified index.
+// InsertBuffer inserts a range of lines to a buffer at the specified index.
 //
 // Deprecated: use SetBufferLines(buffer, lnum, lnum, true, lines)
 `,

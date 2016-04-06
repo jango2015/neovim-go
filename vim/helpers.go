@@ -2,15 +2,11 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package vimutil implements utilities for working with Vim.
-package vimutil
+package vim
 
 import (
-	"bytes"
 	"io"
 	"strconv"
-
-	"github.com/garyburd/neovim-go/vim"
 )
 
 // QuickfixError represents an item in a quickfix list.
@@ -70,26 +66,56 @@ func (a *CommandCompletionArgs) CursorPos() int {
 }
 
 type bufferReader struct {
-	v *vim.Vim
-	r io.Reader
+	v     *Vim
+	b     Buffer
+	lines [][]byte
+	err   error
 }
 
-// CurrentBufferReader returns a reader for the current buffer.
-func CurrentBufferReader(v *vim.Vim) io.Reader {
-	return &bufferReader{v: v}
+// NewBufferReader returns a reader for the specified buffer. If b = 0, then
+// the current buffer is used.
+func NewBufferReader(v *Vim, b Buffer) io.Reader {
+	return &bufferReader{v: v, b: b}
 }
 
-func (br *bufferReader) Read(p []byte) (int, error) {
-	if br.r == nil {
-		b, err := br.v.CurrentBuffer()
-		if err != nil {
-			return 0, err
-		}
-		lines, err := br.v.BufferLineSlice(b, 0, -1, true, true)
-		if err != nil {
-			return 0, err
-		}
-		br.r = bytes.NewReader(bytes.Join(lines, []byte{'\n'}))
+var lineEnd = []byte{'\n'}
+
+func (r *bufferReader) Read(p []byte) (int, error) {
+	if r.err != nil {
+		return 0, r.err
 	}
-	return br.r.Read(p)
+	if r.lines == nil {
+		if r.b == 0 {
+			r.b, r.err = r.v.CurrentBuffer()
+			if r.err != nil {
+				return 0, r.err
+			}
+		}
+		r.lines, r.err = r.v.BufferLines(r.b, 0, -1, true)
+		if r.err != nil {
+			return 0, r.err
+		}
+	}
+	n := 0
+	for {
+		if len(r.lines) == 0 {
+			r.err = io.EOF
+			return n, r.err
+		}
+		if len(p) == 0 {
+			return n, nil
+		}
+		line0 := r.lines[0]
+		if len(line0) == 0 {
+			p[0] = '\n'
+			p = p[1:]
+			n++
+			r.lines = r.lines[1:]
+			continue
+		}
+		nn := copy(p, line0)
+		n += nn
+		p = p[nn:]
+		r.lines[0] = line0[nn:]
+	}
 }
