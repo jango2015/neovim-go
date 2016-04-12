@@ -347,7 +347,7 @@ func (p *Pipeline) AddBufferHighlight(buffer Buffer, srcID int, hlGroup string, 
 // The lineStart and lineEnd parameters specify the range of lines to clear.
 // The end of range is exclusive. Specify -1 to clear to the end of the file.
 func (v *Vim) ClearBufferHighlight(buffer Buffer, srcID int, startLine int, endLine int) error {
-	return v.call(" buffer_clear_highlight", nil, buffer, srcID, startLine, endLine)
+	return v.call("buffer_clear_highlight", nil, buffer, srcID, startLine, endLine)
 }
 
 // ClearBufferHighlight clears highlights from a given source group and a range
@@ -359,7 +359,7 @@ func (v *Vim) ClearBufferHighlight(buffer Buffer, srcID int, startLine int, endL
 // The lineStart and lineEnd parameters specify the range of lines to clear.
 // The end of range is exclusive. Specify -1 to clear to the end of the file.
 func (p *Pipeline) ClearBufferHighlight(buffer Buffer, srcID int, startLine int, endLine int) {
-	p.call(" buffer_clear_highlight", nil, buffer, srcID, startLine, endLine)
+	p.call("buffer_clear_highlight", nil, buffer, srcID, startLine, endLine)
 }
 
 // TabpageWindows returns the windows in a tabpage.

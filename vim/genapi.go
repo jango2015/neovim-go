@@ -187,7 +187,7 @@ var methods = []*struct {
 	},
 	{
 		Name:   "ClearBufferHighlight",
-		Sm:     " buffer_clear_highlight",
+		Sm:     "buffer_clear_highlight",
 		Params: []param{{"buffer", "Buffer"}, {"srcID", "int"}, {"startLine", "int"}, {"endLine", "int"}},
 		Doc: `
 // ClearBufferHighlight clears highlights from a given source group and a range
