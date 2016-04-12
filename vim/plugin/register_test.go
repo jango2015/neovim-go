@@ -6,6 +6,7 @@ package plugin_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/garyburd/neovim-go/vim"
@@ -19,9 +20,13 @@ func init() {
 }
 
 func TestRegister(t *testing.T) {
+	env := []string{}
+	if v := os.Getenv("VIM"); v != "" {
+		env = append(env, "VIM="+v)
+	}
 	v, err := vim.StartEmbeddedVim(&vim.EmbedOptions{
 		Args: []string{"-u", "NONE", "-n"},
-		Env:  []string{},
+		Env:  env,
 		Logf: t.Logf,
 	})
 	if err != nil {

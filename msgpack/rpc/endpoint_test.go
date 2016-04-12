@@ -5,6 +5,7 @@
 package rpc
 
 import (
+	"io"
 	"net"
 	"reflect"
 	"sync"
@@ -31,7 +32,7 @@ func clientServer(t *testing.T, options ...Option) (*Endpoint, *Endpoint, func()
 
 	go func() {
 		err := server.Serve()
-		if err != nil {
+		if err != nil && err != io.ErrClosedPipe {
 			t.Logf("server: %v", err)
 		}
 		wg.Done()
@@ -39,7 +40,7 @@ func clientServer(t *testing.T, options ...Option) (*Endpoint, *Endpoint, func()
 
 	go func() {
 		err := client.Serve()
-		if err != nil {
+		if err != nil && err != io.ErrClosedPipe {
 			t.Logf("client: %v", err)
 		}
 		wg.Done()
