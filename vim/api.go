@@ -122,116 +122,6 @@ func (p *Pipeline) BufferLineCount(buffer Buffer, result *int) {
 	p.call("buffer_line_count", result, buffer)
 }
 
-// BufferLine returns the line at the given index.
-//
-// Deprecated: use BufferLines instead.
-//     for positive indices (including 0) use
-//         "BufferLines(buffer, index, index+1, true)"
-//     for negative indices use
-//         "BufferLines(buffer, index-1, index, true)"
-func (v *Vim) BufferLine(buffer Buffer, index int) ([]byte, error) {
-	var result []byte
-	err := v.call("buffer_get_line", &result, buffer, index)
-	return result, err
-}
-
-// BufferLine returns the line at the given index.
-//
-// Deprecated: use BufferLines instead.
-//     for positive indices (including 0) use
-//         "BufferLines(buffer, index, index+1, true)"
-//     for negative indices use
-//         "BufferLines(buffer, index-1, index, true)"
-func (p *Pipeline) BufferLine(buffer Buffer, index int, result *[]byte) {
-	p.call("buffer_get_line", result, buffer, index)
-}
-
-// SetBufferLine sets the line at the given index.
-//
-// Deprecated: use SetBufferLines instead.
-//     for positive indices use
-//         "SetBufferLines(buffer, index, index+1, true, [lines])"
-//     for negative indices use
-//         "SetBufferLines(buffer, index-1, index, true, [lines])"
-func (v *Vim) SetBufferLine(buffer Buffer, index int, line []byte) error {
-	return v.call("buffer_set_line", nil, buffer, index, line)
-}
-
-// SetBufferLine sets the line at the given index.
-//
-// Deprecated: use SetBufferLines instead.
-//     for positive indices use
-//         "SetBufferLines(buffer, index, index+1, true, [lines])"
-//     for negative indices use
-//         "SetBufferLines(buffer, index-1, index, true, [lines])"
-func (p *Pipeline) SetBufferLine(buffer Buffer, index int, line []byte) {
-	p.call("buffer_set_line", nil, buffer, index, line)
-}
-
-// DeleteBufferLine deletes the line at the given index.
-//
-// Deprecated: use SetBufferLines instead.
-//     for positive indices use
-//         "SetBufferLines(buffer, index, index+1, true, [])"
-//     for negative indices use
-//         "SetBufferLines(buffer, index-1, index, true, [])"
-func (v *Vim) DeleteBufferLine(buffer Buffer, index int) error {
-	return v.call("buffer_del_line", nil, buffer, index)
-}
-
-// DeleteBufferLine deletes the line at the given index.
-//
-// Deprecated: use SetBufferLines instead.
-//     for positive indices use
-//         "SetBufferLines(buffer, index, index+1, true, [])"
-//     for negative indices use
-//         "SetBufferLines(buffer, index-1, index, true, [])"
-func (p *Pipeline) DeleteBufferLine(buffer Buffer, index int) {
-	p.call("buffer_del_line", nil, buffer, index)
-}
-
-// BufferLineSlice retrieves a line range from a buffer.
-//
-// Deprecated: use BufferLines(buffer, newstart, newend, strictIndexing)
-//     newstart = start + int(not includeStart) - int(start < 0)
-//     newend = end + int(includeEnd) - int(end < 0)
-//     int(bool) = 1 if bool is true else 0
-func (v *Vim) BufferLineSlice(buffer Buffer, start int, end int, includeStart bool, includeEnd bool) ([][]byte, error) {
-	var result [][]byte
-	err := v.call("buffer_get_line_slice", &result, buffer, start, end, includeStart, includeEnd)
-	return result, err
-}
-
-// BufferLineSlice retrieves a line range from a buffer.
-//
-// Deprecated: use BufferLines(buffer, newstart, newend, strictIndexing)
-//     newstart = start + int(not includeStart) - int(start < 0)
-//     newend = end + int(includeEnd) - int(end < 0)
-//     int(bool) = 1 if bool is true else 0
-func (p *Pipeline) BufferLineSlice(buffer Buffer, start int, end int, includeStart bool, includeEnd bool, result *[][]byte) {
-	p.call("buffer_get_line_slice", result, buffer, start, end, includeStart, includeEnd)
-}
-
-// SetBufferLineSlice replaces a line range on a buffer.
-//
-// Deprecated: use SetBufferLines(buffer, newstart, newend, false, lines)
-//     newstart = start + int(not includeStart) + int(start < 0)
-//     newend = end + int(includeEnd) + int(end < 0)
-//     int(bool) = 1 if bool is true else 0
-func (v *Vim) SetBufferLineSlice(buffer Buffer, start int, end int, includeStart bool, includeEnd bool, replacement [][]byte) error {
-	return v.call("buffer_set_line_slice", nil, buffer, start, end, includeStart, includeEnd, replacement)
-}
-
-// SetBufferLineSlice replaces a line range on a buffer.
-//
-// Deprecated: use SetBufferLines(buffer, newstart, newend, false, lines)
-//     newstart = start + int(not includeStart) + int(start < 0)
-//     newend = end + int(includeEnd) + int(end < 0)
-//     int(bool) = 1 if bool is true else 0
-func (p *Pipeline) SetBufferLineSlice(buffer Buffer, start int, end int, includeStart bool, includeEnd bool, replacement [][]byte) {
-	p.call("buffer_set_line_slice", nil, buffer, start, end, includeStart, includeEnd, replacement)
-}
-
 // BufferLines retrieves a line range from a buffer.
 //
 // Indexing is zero-based, end-exclusive. Negative indices are interpreted as
@@ -378,20 +268,6 @@ func (v *Vim) IsBufferValid(buffer Buffer) (bool, error) {
 // IsBufferValid returns true if the buffer is valid.
 func (p *Pipeline) IsBufferValid(buffer Buffer, result *bool) {
 	p.call("buffer_is_valid", result, buffer)
-}
-
-// InsertBuffer inserts a range of lines to a buffer at the specified index.
-//
-// Deprecated: use SetBufferLines(buffer, lnum, lnum, true, lines)
-func (v *Vim) InsertBuffer(buffer Buffer, lnum int, lines [][]byte) error {
-	return v.call("buffer_insert", nil, buffer, lnum, lines)
-}
-
-// InsertBuffer inserts a range of lines to a buffer at the specified index.
-//
-// Deprecated: use SetBufferLines(buffer, lnum, lnum, true, lines)
-func (p *Pipeline) InsertBuffer(buffer Buffer, lnum int, lines [][]byte) {
-	p.call("buffer_insert", nil, buffer, lnum, lines)
 }
 
 // BufferMark returns the (row,col) of the named mark.
